@@ -1,0 +1,6 @@
+.idea
+*.iml
+.ruby-version
+.ruby-gemset
+Gemfile.lock
+pkg
