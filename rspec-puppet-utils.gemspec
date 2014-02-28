@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.author        = 'Tom Poulton'
   #gem.license       = ''
 
-  gem.homepage      = 'https://github.com/TomPoulton/rspec-puppet-utils'
+  gem.homepage      = 'https://github.com/Accuity/rspec-puppet-utils'
   gem.files         = `git ls-files`.split($/)
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
