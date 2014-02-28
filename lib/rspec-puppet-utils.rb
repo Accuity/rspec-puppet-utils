@@ -1,19 +1,36 @@
 require 'rspec-puppet'
+require 'mocha'
 require 'erb'
+
+RSpec.configure do |c|
+  c.mock_with :mocha
+end
 
 class MockFunction
 
+  attr_accessor :function_type, :has_default_value, :default_value
+
   def initialize(name, options = {})
-    type_hash = !options.nil? && options.has_key?(:type) ? {:type => options[:type]} : {:type => :rvalue}
+    opts = options.nil? ? {} : options
 
-    @default_value = options[:default_value] if !options.nil? && options.has_key?(:default_value)
+    @function_type = opts.has_key?(:type) ? opts[:type] : :rvalue
 
-    before(:each) {
-      Puppet::Parser::Functions.newfunction(name.to_sym, type_hash) { |args| self.call(args) }
-      self.stubs(:call).returns(@default_value) if @default_value
-    }
+    opts[:default_value] = nil if @function_type == :statement
+
+    @has_default_value = false
+    if opts.has_key?(:default_value)
+      @has_default_value = true
+      @default_value = opts[:default_value]
+    end
+
+    this = self
+    RSpec.configure do |c|
+      c.before(:each) {
+        Puppet::Parser::Functions.newfunction(name.to_sym, {:type => :rvalue}) { |args| this.call(args) }
+        this.stubs(:call).returns(this.default_value) if this.has_default_value
+      }
+    end
   end
-
 end
 
 class TemplateHelper
