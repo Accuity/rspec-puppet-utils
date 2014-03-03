@@ -10,7 +10,7 @@ class MockFunction
 
   attr_accessor :function_type, :has_default_value, :default_value
 
-  def initialize(name, options = {})
+  def initialize(example_group, name, options = {})
     opts = options.nil? ? {} : options
 
     @function_type = opts.has_key?(:type) ? opts[:type] : :rvalue
@@ -24,12 +24,10 @@ class MockFunction
     end
 
     this = self
-    RSpec.configure do |c|
-      c.before(:each) {
-        Puppet::Parser::Functions.newfunction(name.to_sym, {:type => this.function_type}) { |args| this.call(args) }
-        this.stubs(:call).returns(this.default_value) if this.has_default_value
-      }
-    end
+    example_group.before(:each) {
+      Puppet::Parser::Functions.newfunction(name.to_sym, {:type => this.function_type}) { |args| this.call(args) }
+      this.stubs(:call).returns(this.default_value) if this.has_default_value
+    }
   end
 end
 

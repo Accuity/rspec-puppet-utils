@@ -13,7 +13,7 @@ require 'spec_helper'
 
 describe 'foo::bar' do
 
-  add_stuff = MockFunction.new('add_stuff')
+  add_stuff = MockFunction.new(self, 'add_stuff')
   before(:each) do
     add_stuff.stubs(:call).with([1, 2]).returns(3)
   end
@@ -26,17 +26,17 @@ end
 
 You can specify a default value:
 ```ruby
-func = MockFunction.new('func', {:default_value => true})
+func = MockFunction.new(self, 'func', {:default_value => true})
 ```
 
 You can mock a function that doesn't return a value (`:rvalue` is the default):
 ```ruby
-func = MockFunction.new('func', {:type => :statement})
+func = MockFunction.new(self, 'func', {:type => :statement})
 ```
 
 You can mock Hiera:
 ```ruby
-hiera = MockFunction.new('hiera')
+hiera = MockFunction.new(self, 'hiera')
 before(:each) do
   hiera.stubs(:call).with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
   hiera.stubs(:call).with(['db-password']).returns('password1')
@@ -46,6 +46,7 @@ end
 Note:
 - You always stub the `call` method as that gets called internally
 - The `call` method takes an array of arguments
+- `self` is a way of getting hold of the current `RSpec::Core::ExampleGroup` instance. If anyone knows how to do this more cleanly let me know!
 
 ### TemplateHarness
 
