@@ -26,34 +26,41 @@ class MockFunction
     this = self
     RSpec.configure do |c|
       c.before(:each) {
-        Puppet::Parser::Functions.newfunction(name.to_sym, {:type => :rvalue}) { |args| this.call(args) }
+        Puppet::Parser::Functions.newfunction(name.to_sym, {:type => this.function_type}) { |args| this.call(args) }
         this.stubs(:call).returns(this.default_value) if this.has_default_value
       }
     end
   end
 end
 
-class TemplateHelper
-  @location
-  @scope
+class TemplateHarness
 
-  def scope
-    @scope
+  def initialize(template, scope = nil)
+    @template = template
+    @isolator = Isolator.new(scope)
   end
 
-  def set(name,value)
-    var_name = name.start_with?('@') ? name : "@#{name}"  # the '@' is required
-    self.instance_variable_set(var_name, value)
+  def set(name, value)
+    var_name = name.start_with?('@') ? name : "@#{name}"
+    @isolator.instance_variable_set(var_name, value)
   end
 
-  def initialize(location, scope)
-    @location = location
-    @scope = scope
+  def run
+    b = @isolator.get_binding
+    template = File.exists?(@template) ? File.new(@template).read : @template
+    ERB.new(template, 0, '-').result b
   end
 
-  def output()
-    b = binding
-    ERB.new('<%= @properties[0][0] %> <%= scope.lookupvar("keys") %> <%= scope.function_hiera(["key"]) %>', 0, '-').result b
+  class Isolator
+    # Isolates the binding so that only the defined set
+    # of instance variables are available to erb
+    def initialize scope
+      @scope = scope
+    end
+    def get_binding
+      scope = @scope
+      binding
+    end
   end
 
 end

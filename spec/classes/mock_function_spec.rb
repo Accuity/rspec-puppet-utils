@@ -1,11 +1,11 @@
 require 'spec_helper'
 require 'rspec-puppet-utils'
 
-describe 'MockFunction' do
+describe MockFunction do
 
-  # Each new MockFunction must be created here
-  # and each test defined within a context
+  # Each MockFunction must be created here and each test defined within a context
   # otherwise the stubbed default method is not attached
+  # (i.e. the before(:each) block in MockFunction isn't run)
 
   func = MockFunction.new('func')
   default_of_nil = MockFunction.new('default_of_nil', {:default_value => nil})
@@ -68,16 +68,13 @@ describe 'MockFunction' do
 
   context 'when using a puppet scope' do
 
-    before(:each) {
-      func.stubs(:call).with([1, 2]).returns(3)
-    }
-
     it 'puppet should be able to call function' do
       result = scope.function_default_of_true ['a']
       expect(result).to eq true
     end
 
     it 'should be able to stub calls' do
+      func.stubs(:call).with([1, 2]).returns(3)
       result = scope.function_func [1, 2]
       expect(result).to eq 3
     end
