@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |gem|
   gem.name          = 'rspec-puppet-utils'
-  gem.version       = '0.0.1'
+  gem.version       = '1.0.0'
   gem.description   = 'Helper classes for mock functions and templates'
   gem.summary       = ''
   gem.author        = 'Tom Poulton'
