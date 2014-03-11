@@ -11,4 +11,12 @@ describe 'rspec-puppet-utils' do
     expect { TemplateHarness.class }.to_not raise_error
   end
 
+  it 'should require HieraData Validator' do
+    expect { HieraData::Validator.class }.to_not raise_error
+  end
+
+  it 'should require HieraData YamlValidator' do
+    expect { HieraData::YamlValidator.class }.to_not raise_error
+  end
+
 end
