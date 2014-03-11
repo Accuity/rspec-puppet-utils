@@ -26,6 +26,25 @@ describe HieraData::YamlValidator do
 
   end
 
+  context 'with multiple extensions' do
+
+    validator = HieraData::YamlValidator.new('spec/fixtures/hieradata/valid', ['yaml', 'foo'])
+    validator.load
+
+    it 'should load yml files into data' do
+      expect(validator.data).to have_key :other
+    end
+
+  end
+
+  context 'with extensions as string' do
+
+    it 'should load yml files into data' do
+      expect { HieraData::YamlValidator.new('meh', 'whooops') }.to raise_error ArgumentError, /extensions should be an Array/
+    end
+
+  end
+
   context 'with invalid yaml' do
 
     validator = HieraData::YamlValidator.new('spec/fixtures/hieradata/invalid')
