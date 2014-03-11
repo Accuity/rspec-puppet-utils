@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'rspec-puppet-utils'
+require 'lib/template_harness'
 
 describe TemplateHarness do
 
