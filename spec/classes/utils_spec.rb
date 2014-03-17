@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'rspec-puppet-utils'
 
+include RSpecPuppetUtils
+
 describe 'rspec-puppet-utils' do
 
   it 'should require MockFunction' do
