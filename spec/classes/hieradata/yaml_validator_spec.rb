@@ -1,5 +1,7 @@
 require 'lib/hieradata/yaml_validator'
 
+include RSpecPuppetUtils
+
 describe HieraData::YamlValidator do
 
   it 'should be of type Validator' do

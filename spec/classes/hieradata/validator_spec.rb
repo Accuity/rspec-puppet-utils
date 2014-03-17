@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'lib/hieradata/validator'
 
+include RSpecPuppetUtils
+
 module HieraData
   class Test < Validator
     def load
