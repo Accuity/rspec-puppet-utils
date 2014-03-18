@@ -6,10 +6,13 @@ include RSpecPuppetUtils
 describe MockFunction do
 
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-  let(:func_name) { 'my_func' }
-  let(:func_sym)  { :my_func }
+
+  let(:values_from_let) { [1, 2, 3] }
 
   describe '#initialize' do
+
+    func_name = 'my_func'
+    func_sym  = func_name.to_sym
 
     it 'should add new function to puppet' do
       name = 'mock_func'
@@ -77,12 +80,32 @@ describe MockFunction do
 
   end
 
-  context 'when handling blocks' do
+  context 'when :type => :statement' do
+
+    it 'should not raise error' do
+      MockFunction.new 'statement', {:type => :statement}
+      expect {
+        scope.function_statement []
+      }.to_not raise_error
+    end
+
+  end
+
+  context 'when :type => :rvalue' do
 
     it 'should allow setup stubs' do
-      func = MockFunction.new('func') { stubs(:call).returns('badger') }
+      func = MockFunction.new('func') { |f| f.stubs(:call).returns('badger') }
       result = func.call
       expect(result).to eq 'badger'
+    end
+
+    it 'should return values defined by a "let"' do
+      result = []
+      expect {
+        func = MockFunction.new('func') { |f| f.stubs(:call).returns(values_from_let) }
+        result = func.call
+      }.to_not raise_error
+      expect(result).to eq [1, 2, 3]
     end
 
   end

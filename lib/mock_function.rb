@@ -1,24 +1,32 @@
-require 'rspec-puppet'
+require 'puppet'
 
 module RSpecPuppetUtils
 
   class MockFunction
 
-    def initialize(name, options = {}, &block)
+    def initialize(name, options = {})
       parse_options! options
-      this = self
-      Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args }
-      instance_eval(&block) if block
+      if options[:type] == :rvalue
+        this = self
+        Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args}
+        yield self if block_given?
+      else
+        # Even though the puppet function does not return a value,
+        # this mock still needs to do something, what it returns doesn't really matter.
+        Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| args }
+      end
     end
 
     private
 
-    def parse_options! options
-      options[:type] = :rvalue unless options[:type]
-      if options[:type] != :rvalue && options[:type] != :statement
+    def parse_options!(options)
+      unless options[:type]
+        options[:type] = :rvalue
+      end
+      unless [:rvalue, :statement].include? options[:type]
         raise ArgumentError, "Type should be :rvalue or :statement, not #{options[:type]}"
       end
-      if options[:arity] && !options[:arity].is_a?(Integer)
+      unless options[:arity].nil? || options[:arity].is_a?(Integer)
         raise ArgumentError, 'arity should be an integer'
       end
     end
