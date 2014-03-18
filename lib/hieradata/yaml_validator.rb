@@ -31,9 +31,9 @@ module RSpecPuppetUtils
           rescue ArgumentError => e
             raise StandardError, "Yaml Syntax error in file #{file}: #{e.message}"
           end
-          raise StandardError, "Yaml file is empty: #{file}" if !yaml && !ignore_empty
+          raise StandardError, "Yaml file is empty: #{file}" unless yaml || ignore_empty
 
-          @data[file_name.to_sym] = yaml
+          @data[file_name.to_sym] = yaml if yaml
         }
 
       end

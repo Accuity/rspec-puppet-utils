@@ -69,6 +69,11 @@ describe HieraData::YamlValidator do
       expect { validator.load true }.to_not raise_error
     end
 
+    it 'should not add empty files to @data' do
+      validator.load true
+      expect(validator.data.keys).to_not include :empty
+    end
+
   end
 
 end
