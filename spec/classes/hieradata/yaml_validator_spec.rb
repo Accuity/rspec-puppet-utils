@@ -1,5 +1,7 @@
 require 'lib/hieradata/yaml_validator'
 
+include RSpecPuppetUtils
+
 describe HieraData::YamlValidator do
 
   it 'should be of type Validator' do
@@ -65,6 +67,11 @@ describe HieraData::YamlValidator do
 
     it 'should ignore empty files when flag is set' do
       expect { validator.load true }.to_not raise_error
+    end
+
+    it 'should not add empty files to @data' do
+      validator.load true
+      expect(validator.data.keys).to_not include :empty
     end
 
   end

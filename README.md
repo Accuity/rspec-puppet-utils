@@ -1,6 +1,6 @@
 # rspec-puppet-utils
 
-This is the continuation of a previous project about [rspec-puppet unit testing](https://github.com/TomPoulton/rspec-puppet-unit-testing), it provides a more refined version of the helper method for mocking functions, plus a harness for testing templates. The motivation for mocking functions etc is provided there so I won't go over it here.
+This is a more refined version of a previous project about [rspec-puppet unit testing](https://github.com/TomPoulton/rspec-puppet-unit-testing), it provides a class for mocking functions, a harness for testing templates, and a simple tool for testing hiera data files. The motivation for mocking functions etc is provided in that project so I won't go over it here.
 
 ## Usage
 
@@ -13,49 +13,49 @@ require 'spec_helper'
 
 describe 'foo::bar' do
 
-  add_stuff = MockFunction.new(self, 'add_stuff')
-  before(:each) do
-    add_stuff.stubs(:call).with([1, 2]).returns(3)
-  end
+  let!(:add_stuff) { MockFunction.new('add_stuff') { |f|
+      f.stubs(:call).with([1, 2]).returns(3)
+    }
+  }
 
   it 'should do something with add_stuff' do
+    # Specific stub for this test
+    add_stuff.stubs(:call).with([]).returns(nil)
     ...
   end
 end
 ```
 
-You can specify a default value:
-```ruby
-func = MockFunction.new(self, 'func', {:default_value => true})
-```
-
 You can mock a function that doesn't return a value (`:rvalue` is the default):
 ```ruby
-func = MockFunction.new(self, 'func', {:type => :statement})
+MockFunction.new('func', {:type => :statement})
 ```
 
 You can mock Hiera:
 ```ruby
-hiera = MockFunction.new(self, 'hiera')
-before(:each) do
-  hiera.stubs(:call).with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
-  hiera.stubs(:call).with(['db-password']).returns('password1')
-end
+MockFunction.new('hiera') { |f|
+  f.stubs(:call).with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
+  f.stubs(:call).with(['db-password']).returns('password1')
+}
 ```
+You handle when the functions are created yourself, e.g. you can assign it to a local variable `func = MockFunction...` create it in a before block `before(:each) do MockFunction... end` or use let `let!(:func) { MockFunction... }`
 
-Note:
+If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-loaded, so unless you explicitly reference your function in each test, the function won't be created and puppet won't find it. Using `let!` means that the function will be created before every test regardless.
+
+Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
+
+Notes:
 - You always stub the `call` method as that gets called internally
 - The `call` method takes an array of arguments
-- `self` is a way of getting hold of the current `RSpec::Core::ExampleGroup` instance. If anyone knows how to do this more cleanly let me know!
 
 ### TemplateHarness
 
-If your templates have some logic in them that you want to test, and you'd ideally like to get hold of the generated template so you can inspect it programatically rather than just using a regex then use `TemplateHarness`
+If your templates have some logic in them that you want to test, you'd ideally like to get hold of the generated template so you can inspect it programmatically rather than just using a regex. In this case use `TemplateHarness`
 
 Given a basic template:
 
 
-```ruby
+```erb
 <%
     from_class = @class_var
     from_fact  = scope.lookupvar('fact-name')
@@ -91,6 +91,58 @@ end
 
 Note:
 - The path resolution is pretty simple, just pass it a normal relative path, **not** like the paths you pass into the `template` function in puppet (where you expect puppet to add the `templates` section to the path)
+ 
+### HieraData::Validator
+
+The motivation behind this is to quickly check that your hiera data files have no syntax errors without having to run all of the possible combinations of your hiera hierarchy. At the moment this only supports yaml, but other file types can be added easily.
+
+```ruby
+require 'spec_helper'
+
+describe 'YAML hieradata' do
+
+  # Files are loaded recursively
+  validator = HieraData::YamlValidator.new('spec/fixtures/hieradata')
+
+  it 'should not contain syntax errors' do
+    # Use true to ignore empty files (default false)
+    expect { validator.load true }.to_not raise_error
+  end
+
+  context 'with valid yaml' do
+
+    validator.load true
+
+    # Check types
+    it 'should use arrays for api host lists' do
+      validator.validate('my-api-hosts') { |v|
+        expect(v).to be_an Array
+      }
+    end
+
+    # Use regex to match keys
+    it 'ports should only contain digits' do
+      validator.validate(/-port$/) { |v|
+        expect(v).to match /^[0-9]+$/
+      }
+    end
+
+  end
+
+end
+```
+
+In the examples above all keys in all yaml files are searched and checked
+
+If there is an error, you'll see the inner RSpec error, as well as which key and which file is incorrect:
+
+```
+RSpecPuppetUtils::HieraData::ValidationError: mail-smtp-port is invalid in live: expected "TwoFive" to match /^[0-9]+$/
+Diff:
+@@ -1,2 +1,2 @@
+-/^[0-9]+$/
++"TwoFive"
+```
 
 ## Setup
 - Add `rspec-puppet-utils` to your Gemfile (or use `gem install rspec-puppet-utils`)

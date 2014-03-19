@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'lib/template_harness'
 
+include RSpecPuppetUtils
+
 describe TemplateHarness do
 
   it 'should render template' do
