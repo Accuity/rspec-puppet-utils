@@ -5,8 +5,7 @@ module RSpecPuppetUtils
       attr_reader :data
 
       def validate(key, &block)
-        raise StandardError, '@data is nil, try #load first' unless @data
-        raise StandardError, '@data is empty' if @data.empty?
+        raise StandardError, 'No data available, try #load first' if @data.nil? || @data.empty?
 
         found = false
         @data.keys.each do |file|

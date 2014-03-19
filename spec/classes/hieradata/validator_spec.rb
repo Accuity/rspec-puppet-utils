@@ -96,7 +96,7 @@ describe HieraData::Validator do
     nil_validator = HieraData::Test.new
     expect {
       nil_validator.validate('meh') { }
-    }.to raise_error StandardError, /@data is nil, try #load first/
+    }.to raise_error StandardError, /No data available/
   end
 
   it 'should raise error if data is empty' do
@@ -104,7 +104,7 @@ describe HieraData::Validator do
     empty_validator.load_empty
     expect {
       empty_validator.validate('meh') { }
-    }.to raise_error StandardError, /@data is empty/
+    }.to raise_error StandardError, /No data available/
   end
 
 end
