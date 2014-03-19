@@ -40,7 +40,7 @@ MockFunction.new('hiera') { |f|
 ```
 You handle when the functions are created yourself, e.g. you can assign it to a local variable `func = MockFunction...` create it in a before block `before(:each) do MockFunction... end` or use let `let!(:func) { MockFunction... }`
 
-If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-loaded, so unless you explicity reference your function in each test, the function won't be created and puppet won't find it. Using `let!` means that the function will be created before every test regardless.
+If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-loaded, so unless you explicitly reference your function in each test, the function won't be created and puppet won't find it. Using `let!` means that the function will be created before every test regardless.
 
 Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
 
@@ -50,7 +50,7 @@ Notes:
 
 ### TemplateHarness
 
-If your templates have some logic in them that you want to test, you'd ideally like to get hold of the generated template so you can inspect it programatically rather than just using a regex. In this case use `TemplateHarness`
+If your templates have some logic in them that you want to test, you'd ideally like to get hold of the generated template so you can inspect it programmatically rather than just using a regex. In this case use `TemplateHarness`
 
 Given a basic template:
 
@@ -94,7 +94,7 @@ Note:
  
 ### HieraData::Validator
 
-The motivation behind this is to quickly check that your hiera data files are syntactiaclly correct without having to run all of the possible combinations of your hiera hierachy. At the moment this only supports yaml, but other file types can be added easily.
+The motivation behind this is to quickly check that your hiera data files have no syntax errors without having to run all of the possible combinations of your hiera hierarchy. At the moment this only supports yaml, but other file types can be added easily.
 
 ```ruby
 require 'spec_helper'
@@ -105,7 +105,7 @@ describe 'YAML hieradata' do
   validator = HieraData::YamlValidator.new('spec/fixtures/hieradata')
 
   it 'should not contain syntax errors' do
-    # Use true to ignore empty files (defualt false)
+    # Use true to ignore empty files (default false)
     expect { validator.load true }.to_not raise_error
   end
 
