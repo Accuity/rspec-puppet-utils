@@ -1,11 +1,12 @@
 module RSpecPuppetUtils
   module HieraData
+
     class Validator
 
       attr_reader :data
 
       def validate(key, &block)
-        raise StandardError, 'No data available, try #load first' if @data.nil? || @data.empty?
+        raise ValidationError, 'No data available, try #load first' if @data.nil? || @data.empty?
 
         found = false
         @data.keys.each do |file|
@@ -15,11 +16,11 @@ module RSpecPuppetUtils
             begin
               block.call(@data[file][matched_key])
             rescue Exception => e
-              raise StandardError, "#{matched_key} is invalid in #{file}: #{e.message}"
+              raise ValidationError, "#{matched_key} is invalid in #{file}: #{e.message}"
             end
           end
         end
-        raise StandardError, "No match for #{key.inspect} was not found in any files" unless found
+        raise ValidationError, "No match for #{key.inspect} was not found in any files" unless found
       end
 
       private
@@ -30,11 +31,15 @@ module RSpecPuppetUtils
         elsif key.is_a?(Regexp)
           keys = @data[file].keys.select { |k| k.to_s =~ key }
         else
-          raise StandardError, 'Search key must be a String, Symbol or a Regexp'
+          raise ValidationError, 'Search key must be a String, Symbol or a Regexp'
         end
         keys
       end
 
     end
+
+    class ValidationError < StandardError
+    end
+
   end
 end

@@ -42,7 +42,7 @@ describe HieraData::Validator do
 
     expect {
       validator.validate('key') { |v| expect(v).to eq 'oooops' }
-    }.to raise_error StandardError
+    }.to raise_error HieraData::ValidationError
   end
 
   it 'should accept symbol as key' do
@@ -54,13 +54,13 @@ describe HieraData::Validator do
   it 'should validate key in all files' do
     expect {
       validator.validate('missmatch') { |v| expect(v).to be_a String }
-    }.to raise_error StandardError
+    }.to raise_error HieraData::ValidationError
   end
 
   it 'should return key and file in error messages' do
     expect {
       validator.validate('missmatch') { |v| expect(v).to be_a String }
-    }.to raise_error StandardError, /missmatch is invalid in file2/
+    }.to raise_error HieraData::ValidationError, /missmatch is invalid in file2/
   end
 
   context 'when matching with regex' do
@@ -68,7 +68,7 @@ describe HieraData::Validator do
     it 'should raise error if no match is found' do
       expect {
         validator.validate(/nonex/) { }
-      }.to raise_error StandardError, /No match for \/nonex\/ was not found/
+      }.to raise_error HieraData::ValidationError, /No match for \/nonex\/ was not found/
     end
 
     it 'should not raise error if match is found' do
@@ -96,7 +96,7 @@ describe HieraData::Validator do
     nil_validator = HieraData::Test.new
     expect {
       nil_validator.validate('meh') { }
-    }.to raise_error StandardError, /No data available/
+    }.to raise_error HieraData::ValidationError, /No data available/
   end
 
   it 'should raise error if data is empty' do
@@ -104,7 +104,15 @@ describe HieraData::Validator do
     empty_validator.load_empty
     expect {
       empty_validator.validate('meh') { }
-    }.to raise_error StandardError, /No data available/
+    }.to raise_error HieraData::ValidationError, /No data available/
+  end
+
+end
+
+describe HieraData::Validator do
+
+  it 'should inherit from StandardError' do
+    expect(HieraData::ValidationError.ancestors).to include StandardError
   end
 
 end
