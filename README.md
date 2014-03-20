@@ -129,6 +129,15 @@ describe 'YAML hieradata' do
       }
     end
 
+    # Supply a list of files that the key must be in
+    # (all matches in all other files are still validated)
+    # :live and :qa correspond to live.yaml and qa.yaml
+    it 'should override password in live and qa' do
+      validator.validate('password', [:live, :qa]) { |v|
+        expect ...
+      }
+    end
+
   end
 
 end
