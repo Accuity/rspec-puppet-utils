@@ -5,22 +5,30 @@ module RSpecPuppetUtils
 
       attr_reader :data
 
-      def validate(key, &block)
+      def validate(key, required=[],&block)
         raise ValidationError, 'No data available, try #load first' if @data.nil? || @data.empty?
-
-        found = false
+        raise ArgumentError, 'required should be of type Array' unless required.is_a?(Array)
+        required_list = required.dup
+        @found = false
         @data.keys.each do |file|
-          keys = get_matching_keys(key, file)
-          keys.each do |matched_key|
-            found = true
-            begin
-              block.call(@data[file][matched_key])
-            rescue Exception => e
-              raise ValidationError, "#{matched_key} is invalid in #{file}: #{e.message}"
-            end
+          validate_file(file,key,required_list,&block)
+        end
+        raise ValidationError, "No match for #{key.inspect} was not found in any files" unless @found
+        raise NoKeyFoundError, "Key not found in required file" unless required_list.empty?
+      end
+
+
+      def validate_file(file, key, required = [], &block)
+        keys = get_matching_keys(key, file)
+        keys.each do |matched_key|
+          @found = true
+          begin
+            required.delete file
+            block.call(@data[file][matched_key])
+          rescue Exception => e
+            raise ValidationError, "#{matched_key} is invalid in #{file}: #{e.message}"
           end
         end
-        raise ValidationError, "No match for #{key.inspect} was not found in any files" unless found
       end
 
       private
@@ -38,6 +46,8 @@ module RSpecPuppetUtils
 
     end
 
+    class NoKeyFoundError < StandardError
+    end
     class ValidationError < StandardError
     end
 
