@@ -17,6 +17,7 @@ module RSpecPuppetUtils
         raise ValidationError, "Key not found in required file" unless required_list.empty?
       end
 
+      private
 
       def validate_file(file, key, required = [], &block)
         keys = get_matching_keys(key, file)
@@ -30,8 +31,6 @@ module RSpecPuppetUtils
           end
         end
       end
-
-      private
 
       def get_matching_keys(key, file)
         if key.is_a?(String) || key.is_a?(Symbol)
