@@ -13,7 +13,11 @@ module RSpecPuppetUtils
       end
 
       def load(ignore_empty = false)
+        warn '#load is deprecated, use #load_data instead'
+        ignore_empty ? load_data(:ignore_empty) : load_data
+      end
 
+      def load_data(*args)
         files = Dir.glob(File.join(@directory, '**', '*')).reject { |path|
           File.directory?(path) || !@extensions.include?(File.extname path )
         }
@@ -29,14 +33,16 @@ module RSpecPuppetUtils
               YAML::load( yf )
             }
           rescue ArgumentError => e
-            raise StandardError, "Yaml Syntax error in file #{file}: #{e.message}"
+            raise ValidationError, "Yaml Syntax error in file #{file}: #{e.message}"
           end
-          raise StandardError, "Yaml file is empty: #{file}" unless yaml || ignore_empty
+          raise ValidationError, "Yaml file is empty: #{file}" unless yaml || args.include?(:ignore_empty)
 
           @data[file_name.to_sym] = yaml if yaml
         }
-
+        self
       end
+
     end
+
   end
 end
