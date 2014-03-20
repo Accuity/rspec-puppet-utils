@@ -92,11 +92,17 @@ describe HieraData::Validator do
 
   end
 
+  it 'should raise error if key is not a valid type' do
+    expect{
+      validator.validate(['key']) { }
+    }.to raise_error ArgumentError, 'Search key must be a String, Symbol or a Regexp'
+  end
+
   it 'should raise error if data is nil' do
     nil_validator = HieraData::Test.new
     expect {
       nil_validator.validate('meh') { }
-    }.to raise_error HieraData::ValidationError, /No data available/
+    }.to raise_error StandardError, /No data available/
   end
 
   it 'should raise error if data is empty' do
@@ -104,12 +110,12 @@ describe HieraData::Validator do
     empty_validator.load_empty
     expect {
       empty_validator.validate('meh') { }
-    }.to raise_error HieraData::ValidationError, /No data available/
+    }.to raise_error StandardError, /No data available/
   end
 
 end
 
-describe HieraData::Validator do
+describe HieraData::ValidationError do
 
   it 'should inherit from StandardError' do
     expect(HieraData::ValidationError.ancestors).to include StandardError
@@ -128,19 +134,12 @@ describe 'test require keys in files' do
   end
 
   it '2nd Arg should be an Array' do
-    expect{validator.validate('cat', nil){}}.to raise_error ArgumentError, 'required should be of type Array'
+    expect{validator.validate('cat', nil){}}.to raise_error ArgumentError, 'required files should be an Array'
   end
 
-  it 'should raise error NoKeyFoundError' do
-    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::NoKeyFoundError, 'Key not found in required file'
+  it 'should raise error ValidationError' do
+    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::ValidationError, 'Key not found in required file'
   end
-
-  it 'validate file should raise ValidationError' do
-    expect{
-      validator.validate_file('dog',[:file1]){}
-    }.to raise_error HieraData::ValidationError, 'Search key must be a String, Symbol or a Regexp'
-  end
-
 
   it 'dog should raise error ValidationError' do
     expect{
