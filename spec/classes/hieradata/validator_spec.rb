@@ -17,6 +17,9 @@ module HieraData
               'hello' => 'world',
               'missmatch' => ['array'],
               'hat' => 'fedora',
+          },
+          :file3 => {
+              'squid' => 'giant',
           }
       }
     end
@@ -92,11 +95,45 @@ describe HieraData::Validator do
 
   end
 
+  context 'with required files' do
+
+    it 'should raise error if required files in not an Array' do
+      expect {
+        validator.validate('cat', nil) { }
+      }.to raise_error ArgumentError, 'required files should be an Array'
+    end
+
+    it 'should raise error when key is not found in required file' do
+      expect {
+        validator.validate('cat', [:file2]) { }
+      }.to raise_error HieraData::ValidationError
+    end
+
+    it 'should report which files are missing the key' do
+      expect {
+        validator.validate('cat', [:file2, :file3]) { }
+      }.to raise_error HieraData::ValidationError, 'No match for "cat" was not found in: file2, file3'
+    end
+
+    it 'should report broader error if key is not in any files' do
+      expect {
+        validator.validate('dog', [:file1]) { }
+      }.to raise_error HieraData::ValidationError, 'No match for "dog" was not found in any files'
+    end
+
+  end
+
+  it 'should raise error if key is not a valid type' do
+    expect {
+      validator.validate(['key']) { }
+    }.to raise_error ArgumentError, 'Search key must be a String, Symbol or a Regexp'
+  end
+
   it 'should raise error if data is nil' do
     nil_validator = HieraData::Test.new
     expect {
       nil_validator.validate('meh') { }
-    }.to raise_error HieraData::ValidationError, /No data available/
+    }.to raise_error StandardError, /No data available/
   end
 
   it 'should raise error if data is empty' do
@@ -104,12 +141,12 @@ describe HieraData::Validator do
     empty_validator.load_empty
     expect {
       empty_validator.validate('meh') { }
-    }.to raise_error HieraData::ValidationError, /No data available/
+    }.to raise_error StandardError, /No data available/
   end
 
 end
 
-describe HieraData::Validator do
+describe HieraData::ValidationError do
 
   it 'should inherit from StandardError' do
     expect(HieraData::ValidationError.ancestors).to include StandardError
