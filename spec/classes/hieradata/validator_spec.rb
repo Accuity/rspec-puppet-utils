@@ -116,3 +116,19 @@ describe HieraData::Validator do
   end
 
 end
+
+describe 'test require keys in files' do
+  validator = HieraData::Test.new
+  validator.load
+
+  it 'should have key in file' do
+    result = ''
+    validator.validate('hello' ,[:file2]){ |v| result = v}
+    expect(result).to eq 'world'
+  end
+
+  it 'should raise error' do
+    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::KeyRequireError, 'Key not found in required file'
+  end
+
+end
