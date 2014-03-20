@@ -127,8 +127,25 @@ describe 'test require keys in files' do
     expect(result).to eq 'world'
   end
 
-  it 'should raise error' do
-    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::KeyRequireError, 'Key not found in required file'
+  it '2nd Arg should be an Array' do
+    expect{validator.validate('cat', nil){}}.to raise_error ArgumentError, 'required should be of type Array'
+  end
+
+  it 'should raise error NoKeyFoundError' do
+    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::NoKeyFoundError, 'Key not found in required file'
+  end
+
+  it 'validate file should raise ValidationError' do
+    expect{
+      validator.validate_file('dog',[:file1]){}
+    }.to raise_error HieraData::ValidationError, 'Search key must be a String, Symbol or a Regexp'
+  end
+
+
+  it 'dog should raise error ValidationError' do
+    expect{
+      validator.validate('dog',[:file1]){}
+    }.to raise_error HieraData::ValidationError, 'No match for "dog" was not found in any files'
   end
 
 end
