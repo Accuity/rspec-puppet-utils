@@ -92,6 +92,28 @@ describe HieraData::Validator do
 
   end
 
+  context 'with required files' do
+
+    it 'should raise error if required files in not an Array' do
+      expect {
+        validator.validate('cat', nil) { }
+      }.to raise_error ArgumentError, 'required files should be an Array'
+    end
+
+    it 'should raise error when key is not found in required file' do
+      expect {
+        validator.validate('cat', [:file2]) { }
+      }.to raise_error HieraData::ValidationError, 'Key not found in required file'
+    end
+
+    it 'should report broader error if key is not in any files' do
+      expect{
+        validator.validate('dog', [:file1]) { }
+      }.to raise_error HieraData::ValidationError, 'No match for "dog" was not found in any files'
+    end
+
+  end
+
   it 'should raise error if key is not a valid type' do
     expect{
       validator.validate(['key']) { }
@@ -119,32 +141,6 @@ describe HieraData::ValidationError do
 
   it 'should inherit from StandardError' do
     expect(HieraData::ValidationError.ancestors).to include StandardError
-  end
-
-end
-
-describe 'test require keys in files' do
-  validator = HieraData::Test.new
-  validator.load
-
-  it 'should have key in file' do
-    result = ''
-    validator.validate('hello' ,[:file2]){ |v| result = v}
-    expect(result).to eq 'world'
-  end
-
-  it '2nd Arg should be an Array' do
-    expect{validator.validate('cat', nil){}}.to raise_error ArgumentError, 'required files should be an Array'
-  end
-
-  it 'should raise error ValidationError' do
-    expect{validator.validate('cat',[:file2]){}}.to raise_error HieraData::ValidationError, 'Key not found in required file'
-  end
-
-  it 'dog should raise error ValidationError' do
-    expect{
-      validator.validate('dog',[:file1]){}
-    }.to raise_error HieraData::ValidationError, 'No match for "dog" was not found in any files'
   end
 
 end
