@@ -17,6 +17,9 @@ module HieraData
               'hello' => 'world',
               'missmatch' => ['array'],
               'hat' => 'fedora',
+          },
+          :file3 => {
+              'squid' => 'giant',
           }
       }
     end
@@ -103,11 +106,17 @@ describe HieraData::Validator do
     it 'should raise error when key is not found in required file' do
       expect {
         validator.validate('cat', [:file2]) { }
-      }.to raise_error HieraData::ValidationError, 'Key not found in required file'
+      }.to raise_error HieraData::ValidationError
+    end
+
+    it 'should report which files are missing the key' do
+      expect {
+        validator.validate('cat', [:file2, :file3]) { }
+      }.to raise_error HieraData::ValidationError, 'No match for "cat" was not found in: file2, file3'
     end
 
     it 'should report broader error if key is not in any files' do
-      expect{
+      expect {
         validator.validate('dog', [:file1]) { }
       }.to raise_error HieraData::ValidationError, 'No match for "dog" was not found in any files'
     end
@@ -115,7 +124,7 @@ describe HieraData::Validator do
   end
 
   it 'should raise error if key is not a valid type' do
-    expect{
+    expect {
       validator.validate(['key']) { }
     }.to raise_error ArgumentError, 'Search key must be a String, Symbol or a Regexp'
   end

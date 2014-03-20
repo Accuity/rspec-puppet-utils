@@ -14,7 +14,7 @@ module RSpecPuppetUtils
           validate_file(file,key,required_list,&block)
         end
         raise ValidationError, "No match for #{key.inspect} was not found in any files" unless @found
-        raise ValidationError, "Key not found in required file" unless required_list.empty?
+        raise ValidationError, "No match for #{key.inspect} was not found in: #{required_list.join ', '}" unless required_list.empty?
       end
 
       private
