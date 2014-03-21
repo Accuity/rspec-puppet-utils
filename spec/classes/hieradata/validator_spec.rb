@@ -4,7 +4,10 @@ require 'lib/hieradata/validator'
 include RSpecPuppetUtils
 
 module HieraData
-  class Test < Validator
+  class TestValidator < Validator
+    def initialize
+      @load_errors = []
+    end
     def load
       @data = {
           :file1 => {
@@ -26,12 +29,15 @@ module HieraData
     def load_empty
       @data = {}
     end
+    def set_load_errors(errors)
+      @load_errors = errors
+    end
   end
 end
 
 describe HieraData::Validator do
 
-  validator = HieraData::Test.new
+  validator = HieraData::TestValidator.new
   validator.load
 
   it 'should have public data variable' do
@@ -129,15 +135,24 @@ describe HieraData::Validator do
     }.to raise_error ArgumentError, 'Search key must be a String, Symbol or a Regexp'
   end
 
+  it 'should raise error if there were load errors' do
+    load_error_validator = HieraData::TestValidator.new
+    load_error_validator.load_empty
+    load_error_validator.set_load_errors ['file1 is empty', 'file2 has syntax errors']
+    expect {
+      load_error_validator.validate('') { }
+    }.to raise_error HieraData::ValidationError, /file1 is empty\nfile2 has syntax errors/
+  end
+
   it 'should raise error if data is nil' do
-    nil_validator = HieraData::Test.new
+    nil_validator = HieraData::TestValidator.new
     expect {
       nil_validator.validate('meh') { }
     }.to raise_error StandardError, /No data available/
   end
 
   it 'should raise error if data is empty' do
-    empty_validator = HieraData::Test.new
+    empty_validator = HieraData::TestValidator.new
     empty_validator.load_empty
     expect {
       empty_validator.validate('meh') { }

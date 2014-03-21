@@ -10,7 +10,7 @@ describe HieraData::YamlValidator do
     expect(validator).to be_a_kind_of HieraData::Validator
   end
 
-  describe '#load' do
+  describe '#load_data' do
 
     context 'with valid yaml' do
 
@@ -27,6 +27,11 @@ describe HieraData::YamlValidator do
 
       it 'should load yaml data from files' do
         expect(validator.data[:valid]['string-value']).to eq 'a string'
+      end
+
+      it 'should not add any load errors' do
+        expect(validator.load_errors).to be_an Array
+        expect(validator.load_errors).to be_empty
       end
 
     end
@@ -54,10 +59,16 @@ describe HieraData::YamlValidator do
 
       validator = HieraData::YamlValidator.new('spec/fixtures/hieradata/invalid')
 
-      it 'should raise error with syntax error' do
+      it 'should not raise error' do
         expect {
           validator.load_data
-        }.to raise_error HieraData::ValidationError, /Yaml Syntax error in file .*\/invalid.yaml/
+        }.to_not raise_error
+      end
+
+      it 'should add error to load_errors' do
+        expect(validator.load_errors).to be_an Array
+        expect(validator.load_errors.size).to eq 1
+        expect(validator.load_errors[0]).to match /Error in file .*\/invalid.yaml/
       end
 
     end
@@ -66,10 +77,17 @@ describe HieraData::YamlValidator do
 
       subject(:validator) { HieraData::YamlValidator.new('spec/fixtures/hieradata/empty') }
 
-      it 'should raise error by default' do
+      it 'should not raise error by default' do
         expect {
           validator.load_data
-        }.to raise_error HieraData::ValidationError, /Yaml file is empty: .*\/empty.yaml/
+        }.to_not raise_error # /Yaml file is empty: .*\/empty.yaml/
+      end
+
+      it 'should add error to load_errors' do
+        validator.load_data
+        expect(validator.load_errors).to be_an Array
+        expect(validator.load_errors.size).to eq 1
+        expect(validator.load_errors[0]).to match /Yaml file is empty: .*\/empty.yaml/
       end
 
       it 'should ignore empty files when flag is set' do
@@ -98,11 +116,19 @@ describe HieraData::YamlValidator do
   describe '#load' do
 
     subject(:validator) { HieraData::YamlValidator.new('spec/fixtures/hieradata/empty') }
+    before(:each) do
+      validator.stubs(:warn) # Hide warn message from output
+    end
 
     it 'should support old #load method' do
-      validator.stubs(:warn)
       expect { validator.load true }.to_not raise_error
       expect(validator.data.keys).to include :not_empty
+    end
+
+    it 'should still throw errors if necessary' do
+      expect {
+        validator.load
+      }.to raise_error HieraData::ValidationError
     end
 
     it 'should warn when using old #load method' do
