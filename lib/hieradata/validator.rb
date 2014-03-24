@@ -3,12 +3,10 @@ module RSpecPuppetUtils
 
     class Validator
 
-      attr_reader :data
+      attr_reader :data, :load_errors
 
-      def validate(key, required_in_files = [], &block)
-        raise StandardError, 'No data available, try #load first' if @data.nil? || @data.empty?
-        raise ArgumentError, 'required files should be an Array' unless required_in_files.is_a?(Array)
-        required_files = required_in_files.dup
+      def validate(key, required_files = [], &block)
+        pre_checks(required_files)
         @found = false
         @data.keys.each do |file|
           validate_file file, key, required_files, &block
@@ -18,6 +16,12 @@ module RSpecPuppetUtils
       end
 
       private
+
+      def pre_checks(required_files)
+        raise ValidationError, "Errors occurred during data load:\n#{@load_errors.join "\n"}\n" unless @load_errors.empty?
+        raise StandardError, 'No data available, try #load first' if @data.nil? || @data.empty?
+        raise ArgumentError, 'required files should be an Array' unless required_files.is_a?(Array)
+      end
 
       def validate_file(file, key, required_files, &block)
         keys = get_matching_keys key, file
