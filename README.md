@@ -105,39 +105,30 @@ describe 'YAML hieradata' do
 
   # Files are loaded recursively
   validator = HieraData::YamlValidator.new('spec/fixtures/hieradata')
+  validator.load_data :ignore_empty
+  # Use load_data without args to catch empty files
 
-  it 'should not contain syntax errors' do
-    # Use true to ignore empty files (default false)
-    expect { validator.load true }.to_not raise_error
+  # Check types
+  it 'should use arrays for api host lists' do
+    validator.validate('my-api-hosts') { |v|
+      expect(v).to be_an Array
+    }
   end
 
-  context 'with valid yaml' do
+  # Use regex to match keys
+  it 'ports should only contain digits' do
+    validator.validate(/-port$/) { |v|
+      expect(v).to match /^[0-9]+$/
+    }
+  end
 
-    validator.load true
-
-    # Check types
-    it 'should use arrays for api host lists' do
-      validator.validate('my-api-hosts') { |v|
-        expect(v).to be_an Array
-      }
-    end
-
-    # Use regex to match keys
-    it 'ports should only contain digits' do
-      validator.validate(/-port$/) { |v|
-        expect(v).to match /^[0-9]+$/
-      }
-    end
-
-    # Supply a list of files that the key must be in
-    # (all matches in all other files are still validated)
-    # :live and :qa correspond to live.yaml and qa.yaml
-    it 'should override password in live and qa' do
-      validator.validate('password', [:live, :qa]) { |v|
-        expect ...
-      }
-    end
-
+  # Supply a list of files that the key must be in
+  # (all matches in all other files are still validated)
+  # :live and :qa correspond to live.yaml and qa.yaml
+  it 'should override password in live and qa' do
+    validator.validate('password', [:live, :qa]) { |v|
+      expect ...
+    }
   end
 
 end
@@ -154,6 +145,8 @@ Diff:
 -/^[0-9]+$/
 +"TwoFive"
 ```
+
+For more about usage see the [wiki page](../../wiki/Hiera-Data-Validator)
 
 ## Setup
 - Add `rspec-puppet-utils` to your Gemfile (or use `gem install rspec-puppet-utils`)
