@@ -2,7 +2,7 @@
 
 This is a more refined version of a previous project about [rspec-puppet unit testing](https://github.com/TomPoulton/rspec-puppet-unit-testing), it provides a class for mocking functions, a harness for testing templates, and a simple tool for testing hiera data files. The motivation for mocking functions etc is provided in that project so I won't go over it here.
 
-See [release notes for v2.0.0](../../wiki/Release-Notes#v200)
+See [release notes for v2.0.1](../../wiki/Release-Notes#v201)
 
 ## Usage
 
