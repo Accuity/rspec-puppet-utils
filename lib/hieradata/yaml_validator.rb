@@ -4,14 +4,6 @@ require 'yaml'
 module RSpecPuppetUtils
   module HieraData
 
-    # only load data once (performance)
-    # tests can run independently and do not require a "load" test
-    # syntax errors (or empty files) should be caught in a test, not blow up in a describe or context block
-    # all errors are easy to find
-
-    #validator = HieraData::YamlValidator.new('spec/fixtures/hieradata', ['eyaml'])
-    #validator.load_data :ignore_empty
-
     class YamlValidator < HieraData::Validator
 
       def initialize(directory, extensions = ['yaml', 'yml'])
