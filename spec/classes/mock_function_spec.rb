@@ -80,13 +80,43 @@ describe MockFunction do
 
   end
 
+  describe '#stub' do
+
+    let(:func) { MockFunction.new('func') }
+
+    it 'should stub #call' do
+      expectation = func.stub
+      expect(expectation).to be_a Mocha::Expectation
+      expect(expectation.matches_method? :call).to eq true
+    end
+
+  end
+
+  describe '#expect' do
+
+    let(:func) { MockFunction.new('func') }
+
+    it 'should register expect on #call' do
+      expectation = func.expect
+      expect(expectation).to be_a Mocha::Expectation
+      expect(expectation.matches_method? :call).to eq true
+      func.call [nil] # satisfy the expect we just created!
+    end
+
+  end
+
   context 'when :type => :statement' do
 
+    let!(:statement) { MockFunction.new 'statement', {:type => :statement} }
+
     it 'should not raise error' do
-      MockFunction.new 'statement', {:type => :statement}
       expect {
         scope.function_statement []
       }.to_not raise_error
+    end
+
+    it 'should respond to #call' do
+      expect(statement.respond_to? :call).to eq true
     end
 
   end

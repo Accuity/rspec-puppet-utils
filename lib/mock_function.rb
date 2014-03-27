@@ -1,4 +1,5 @@
 require 'puppet'
+require 'mocha'
 
 module RSpecPuppetUtils
 
@@ -6,15 +7,25 @@ module RSpecPuppetUtils
 
     def initialize(name, options = {})
       parse_options! options
-      if options[:type] == :rvalue
-        this = self
-        Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args}
-        yield self if block_given?
-      else
-        # Even though the puppet function does not return a value,
-        # this mock still needs to do something, what it returns doesn't really matter.
-        Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| args }
+      this = self
+      Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args}
+      yield self if block_given?
+
+      if options[:type] == :statement
+        # call is called on statement function incase expects(:call) is needed
+        # The method is defined incase expects(:call) isn't used
+        def this.call args
+          args
+        end
       end
+    end
+
+    def stub
+      self.stubs(:call)
+    end
+
+    def expect
+      self.expects(:call)
     end
 
     private

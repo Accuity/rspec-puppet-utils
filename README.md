@@ -16,13 +16,14 @@ require 'spec_helper'
 describe 'foo::bar' do
 
   let!(:add_stuff) { MockFunction.new('add_stuff') { |f|
-      f.stubs(:call).with([1, 2]).returns(3)
+      f.stub.with([1, 2]).returns(3)
     }
   }
 
   it 'should do something with add_stuff' do
     # Specific stub for this test
-    add_stuff.stubs(:call).with([]).returns(nil)
+    add_stuff.stub.with([]).returns(nil)
+    ...
     ...
   end
 end
@@ -36,8 +37,8 @@ MockFunction.new('func', {:type => :statement})
 You can mock Hiera:
 ```ruby
 MockFunction.new('hiera') { |f|
-  f.stubs(:call).with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
-  f.stubs(:call).with(['db-password']).returns('password1')
+  f.stub.with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
+  f.stub.with(['db-password']).returns('password1')
 }
 ```
 You handle when the functions are created yourself, e.g. you can assign it to a local variable `func = MockFunction...` create it in a before block `before(:each) do MockFunction... end` or use let `let!(:func) { MockFunction... }`
@@ -47,6 +48,7 @@ If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-
 Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
 
 Notes:
+- `f.stub` and `f.expect` are helper methods for `f.stubs(:call)` and `f.expects(:call)`
 - You always stub the `call` method as that gets called internally
 - The `call` method takes an array of arguments
 
