@@ -47,14 +47,14 @@ If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-
 
 Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
 
-Mocha stubs and expects:
+#####Mocha stubs and expects:
 `f.stub` and `f.expect` are helper methods for `f.stubs(:call)` and `f.expects(:call)`
 
-Internally `#expect` will clear the rspec-puppet catalog cache. This is because rspec-puppet will only re-compile the catalog for a test if the title, params, facts, or code is changed. This means that functions are only called when these are changed, so if you setup an expectaion in a test, it might not be satisfied because the catalog was already compiled for a previous test.
+Internally `#expect` will clear the rspec-puppet catalog cache. This is because rspec-puppet will only re-compile the catalog for a test if `:title`, `:params`, or `:facts` are changed. This means that if you setup an expectaion in a test, it might not be satisfied because the catalog was already compiled for a previous test, and so the functions weren't called!
 
-Clearing the cache ensures tests aren't coupled and order dependent. The downside is that the catalog isn't cached and has to be re-compiled which slows down the tests. So if you're concerned about performance and you are explicitly changing the title or params (or facts or code) for a test you can keep the cache intact with `f.expect(:keep_cache)`
+Clearing the cache ensures tests aren't coupled and order dependent. The downside is that the catalog isn't cached and has to be re-compiled which slows down your tests. If you're concerned about performance and you are explicitly changing `:title`, `:params`, or `:facts` for a test, you can keep the cache intact with `f.expect(:keep_cache)`
 
-Notes:
+#####Notes:
 - You always stub the `call` method as that gets called internally
 - The `call` method takes an array of arguments
 
