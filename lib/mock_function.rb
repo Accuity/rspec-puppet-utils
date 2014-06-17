@@ -1,6 +1,14 @@
 require 'puppet'
 require 'mocha'
 
+module RSpec::Puppet
+  module Support
+    def self.clear_cache
+      @@cache = {}
+    end
+  end
+end
+
 module RSpecPuppetUtils
 
   class MockFunction
@@ -25,6 +33,7 @@ module RSpecPuppetUtils
     end
 
     def expect
+      RSpec::Puppet::Support.clear_cache
       self.expects(:call)
     end
 

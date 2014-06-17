@@ -100,7 +100,13 @@ describe MockFunction do
       expectation = func.expect
       expect(expectation).to be_a Mocha::Expectation
       expect(expectation.matches_method? :call).to eq true
-      func.call [nil] # satisfy the expect we just created!
+      func.call [nil] # satisfy the expect we just created on #call!
+    end
+
+    it 'should clear rspec puppet cache' do
+      RSpec::Puppet::Support.expects(:clear_cache).once
+      func.expect
+      func.call [nil] # satisfy the expect we just created on #call!
     end
 
   end
