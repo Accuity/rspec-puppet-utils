@@ -109,6 +109,16 @@ describe MockFunction do
       func.call [nil] # satisfy the expect we just created on #call!
     end
 
+    context 'when :keep_cache is set' do
+
+      it 'should not clear rspec puppet cache' do
+        RSpec::Puppet::Support.expects(:clear_cache).never
+        func.expect(:keep_cache)
+        func.call [nil] # satisfy the expect we just created on #call!
+      end
+
+    end
+
   end
 
   context 'when :type => :statement' do

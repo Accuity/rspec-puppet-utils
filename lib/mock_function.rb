@@ -32,8 +32,8 @@ module RSpecPuppetUtils
       self.stubs(:call)
     end
 
-    def expect
-      RSpec::Puppet::Support.clear_cache
+    def expect(*args)
+      RSpec::Puppet::Support.clear_cache unless args.include? :keep_cache
       self.expects(:call)
     end
 
