@@ -16,8 +16,11 @@ module RSpecPuppetUtils
 
     def run
       b = @isolator.get_binding
-      template = File.exists?(@template) ? File.new(@template).read : @template
-      ERB.new(template, 0, '-').result b
+      inline = !File.exists?(@template)
+      template_string = inline ? @template : File.new(@template).read
+      template = ERB.new(template_string, 0, '-')
+      template.filename = File.expand_path(@template) unless inline
+      template.result b
     end
 
     class Isolator

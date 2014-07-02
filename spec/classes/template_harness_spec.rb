@@ -45,4 +45,25 @@ describe TemplateHarness do
     expect(harness.run).to eq 'elephant'
   end
 
+  it 'should set filename of template' do
+    template_path = 'spec/fixtures/templates/returns_elephant.erb'
+    absolute_path = File.expand_path(template_path)
+
+    fakeplate = Object.new
+    fakeplate.stubs(:result).returns('')
+    fakeplate.expects(:filename=).with(absolute_path).once
+    ERB.stubs(:new).returns(fakeplate)
+
+    TemplateHarness.new(template_path).run
+  end
+
+  it 'should not set filename of inline template' do
+    fakeplate = Object.new
+    fakeplate.stubs(:result).returns('')
+    fakeplate.expects(:filename=).never
+    ERB.stubs(:new).returns(fakeplate)
+
+    TemplateHarness.new('<%= "" %>').run
+  end
+
 end
