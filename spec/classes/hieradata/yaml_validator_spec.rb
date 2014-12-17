@@ -29,6 +29,10 @@ describe HieraData::YamlValidator do
         expect(validator.data[:valid]['string-value']).to eq 'a string'
       end
 
+      it 'should load yaml data from files with dot in filename' do
+        expect(validator.data.keys).to include :'nested.dot'
+      end
+
       it 'should not add any load errors' do
         expect(validator.load_errors).to be_an Array
         expect(validator.load_errors).to be_empty
