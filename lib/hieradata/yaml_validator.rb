@@ -31,7 +31,8 @@ module RSpecPuppetUtils
 
       def load_data_for_file(file, ignore_empty)
         # Assume all file names are unique i.e. thing.yaml and thing.yml don't both exist
-        file_name = File.basename(file).split('.').first
+        # Allow dots in filename i.e. thing.something.yaml
+        file_name = File.basename(file, File.extname(file))
         begin
           yaml = File.open(file) { |yf| YAML::load( yf ) }
         rescue ArgumentError => e
