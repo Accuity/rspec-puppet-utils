@@ -30,7 +30,7 @@ module RSpecPuppetUtils
           begin
             required_files.delete file
             block.call @data[file][matched_key]
-          rescue StandardError => e
+          rescue RSpec::Expectations::ExpectationNotMetError => e
             raise ValidationError, "#{matched_key} is invalid in #{file}: #{e.message}"
           end
         end
