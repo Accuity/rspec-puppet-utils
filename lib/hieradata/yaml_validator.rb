@@ -35,7 +35,7 @@ module RSpecPuppetUtils
         file_name = File.basename(file, File.extname(file))
         begin
           yaml = File.open(file) { |yf| YAML::load( yf ) }
-        rescue ArgumentError => e
+        rescue => e
           @load_errors.push "Error in file #{file}: #{e.message}"
           return
         end
