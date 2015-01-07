@@ -29,10 +29,14 @@ module RSpecPuppetUtils
 
       private
 
+      # For presentation, return just the subpath within hieradata.
+      # e.g., /path/hieradata/subdir/foo.yaml becomes subdir/foo.yaml
+      def subpath(file)
+        file.sub(/#{@directory}/, '').sub(/#{File::SEPARATOR}/, '')
+      end
+
       def load_data_for_file(file, ignore_empty)
-        # Assume all file names are unique i.e. thing.yaml and thing.yml don't both exist
-        # Allow dots in filename i.e. thing.something.yaml
-        file_name = File.basename(file, File.extname(file))
+        file_name = subpath(file)
         begin
           yaml = File.open(file) { |yf| YAML::load( yf ) }
         rescue => e
