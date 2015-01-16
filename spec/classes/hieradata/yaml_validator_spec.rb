@@ -22,15 +22,23 @@ describe HieraData::YamlValidator do
       end
 
       it 'should load yaml files recursively' do
-        expect(validator.data.keys).to include :nested
+        expect(validator.data.keys).to include :'sub/nested.yaml'
       end
 
       it 'should load yaml data from files' do
-        expect(validator.data[:valid]['string-value']).to eq 'a string'
+        expect(validator.data[:'valid.yaml']['string-value']).to eq 'a string'
       end
 
       it 'should load yaml data from files with dot in filename' do
-        expect(validator.data.keys).to include :'nested.dot'
+        expect(validator.data.keys).to include :'sub/nested.dot.yaml'
+      end
+
+      it 'should load yaml data from files with same name but different dir' do
+        expect(validator.data.keys).to include :'sub2/nested.dot.yaml'
+      end
+
+      it 'should load yaml data from files with same name but different ext' do
+        expect(validator.data.keys).to include :'sub2/nested.dot.yml'
       end
 
       it 'should not add any load errors' do
@@ -46,7 +54,7 @@ describe HieraData::YamlValidator do
       validator.load_data
 
       it 'should load yml files into data' do
-        expect(validator.data).to have_key :other
+        expect(validator.data).to have_key :'other.foo'
       end
 
     end
@@ -105,7 +113,7 @@ describe HieraData::YamlValidator do
 
       it 'should add non empty files to data' do
         validator.load_data :ignore_empty
-        expect(validator.data.keys).to include :not_empty
+        expect(validator.data.keys).to include :'not_empty.yaml'
       end
 
     end
@@ -126,7 +134,7 @@ describe HieraData::YamlValidator do
 
     it 'should support old #load method' do
       expect { validator.load true }.to_not raise_error
-      expect(validator.data.keys).to include :not_empty
+      expect(validator.data.keys).to include :'not_empty.yaml'
     end
 
     it 'should still throw errors if necessary' do
