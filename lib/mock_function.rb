@@ -16,16 +16,12 @@ module RSpecPuppetUtils
     def initialize(name, options = {})
       parse_options! options
       this = self
-      Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args}
+      Puppet::Parser::Functions.newfunction(name.to_sym, options) { |args| this.call args }
       yield self if block_given?
+    end
 
-      if options[:type] == :statement
-        # call is called on statement function incase expects(:call) is needed
-        # The method is defined incase expects(:call) isn't used
-        def this.call args
-          args
-        end
-      end
+    def call(args)
+      args
     end
 
     def stub

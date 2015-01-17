@@ -58,10 +58,6 @@ describe MockFunction do
 
     let(:func) { MockFunction.new('func') }
 
-    it 'should not be defined by default' do
-      expect(func.respond_to?(:call)).to eq false
-    end
-
     it 'should be stubable' do
       func.stubs(:call)
       expect(func.respond_to?(:call)).to eq true
