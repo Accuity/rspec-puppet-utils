@@ -8,6 +8,14 @@ See [release notes](../../wiki/Release-Notes) about latest version
 
 ### MockFunction
 
+#####Update:
+
+As of version 2.1.0 the `#stub` and `#expect` methods have been superseded by `#stubbed` and `#expected` so that you can use parameter matchers. The only difference in usage from previous versions is that the methods take a set of parameters rather than a single array (e.g. `f.expected.with(1, 2, 3)` instead of `f.expect.with([1, 2, 3])`)
+
+The change is backwards compatible so `#stub` and `#expect` are still available and function as before
+
+#####Usage:
+
 The basic usage is to create your mock function with `MockFunction.new` and then use `mocha` to stub any particular calls that you need
 
 ```ruby
@@ -16,14 +24,13 @@ require 'spec_helper'
 describe 'foo::bar' do
 
   let!(:add_stuff) { MockFunction.new('add_stuff') { |f|
-      f.stub.with([1, 2]).returns(3)
+      f.stubbed.with(1, 2).returns(3)
     }
   }
 
   it 'should do something with add_stuff' do
     # Specific stub for this test
-    add_stuff.stub.with([]).returns(nil)
-    ...
+    add_stuff.stubbed.with(2, 3).returns(5)
     ...
   end
 end
@@ -37,8 +44,8 @@ MockFunction.new('func', {:type => :statement})
 You can mock Hiera:
 ```ruby
 MockFunction.new('hiera') { |f|
-  f.stub.with(['non-ex']).raises(Puppet::ParseError.new('Key not found'))
-  f.stub.with(['db-password']).returns('password1')
+  f.stubbed.with('non-ex').raises(Puppet::ParseError.new('Key not found'))
+  f.stubbed.with('db-password').returns('password1')
 }
 ```
 You handle when the functions are created yourself, e.g. you can assign it to a local variable `func = MockFunction...` create it in a before block `before(:each) do MockFunction... end` or use let `let!(:func) { MockFunction... }`
@@ -48,15 +55,15 @@ If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-
 Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
 
 #####Mocha stubs and expects:
-`f.stub` and `f.expect` are helper methods for `f.stubs(:call)` and `f.expects(:call)`
+`f.stubbed` and `f.expected` are helper methods for `f.stubs(:execute)` and `f.expects(:execute)`
 
-Internally `#expect` will clear the rspec-puppet catalog cache. This is because rspec-puppet will only re-compile the catalog for a test if `:title`, `:params`, or `:facts` are changed. This means that if you setup an expectaion in a test, it might not be satisfied because the catalog was already compiled for a previous test, and so the functions weren't called!
+Internally `#expected` will clear the rspec-puppet catalog cache. This is because rspec-puppet will only re-compile the catalog for a test if `:title`, `:params`, or `:facts` are changed. This means that if you setup an expectaion in a test, it might not be satisfied because the catalog was already compiled for a previous test, and so the functions weren't called!
 
-Clearing the cache ensures tests aren't coupled and order dependent. The downside is that the catalog isn't cached and has to be re-compiled which slows down your tests. If you're concerned about performance and you are explicitly changing `:title`, `:params`, or `:facts` for a test, you can keep the cache intact with `f.expect(:keep_cache)`
+Clearing the cache ensures tests aren't coupled and order dependent. The downside is that the catalog isn't cached and has to be re-compiled which slows down your tests. If you're concerned about performance and you are explicitly changing `:title`, `:params`, or `:facts` for a test, you can keep the cache intact with `f.expected(:keep_cache)`
 
 #####Notes:
-- You always stub the `call` method as that gets called internally
-- The `call` method takes an array of arguments
+- You always stub the `execute` method as that gets called internally
+- The `execute` method takes a set of arguments instead of an array of arguments
 
 ### TemplateHarness
 
