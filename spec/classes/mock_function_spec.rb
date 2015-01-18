@@ -74,6 +74,57 @@ describe MockFunction do
       scope.function_func [1, 2, 3]
     end
 
+    it 'passes function args to execute method' do
+      func.expects(:execute).with(1, 2, 3)
+      func.call [1, 2, 3]
+    end
+
+  end
+
+  describe '#stubbed' do
+
+    let(:func) { MockFunction.new('func') }
+
+    it 'stubs #execute' do
+      expectation = func.stubbed
+      expect(expectation).to be_a Mocha::Expectation
+      expect(expectation.matches_method? :execute).to eq true
+    end
+
+  end
+
+  describe '#expected' do
+
+    let(:func) { MockFunction.new('func') }
+
+    it 'registers expect on #execute' do
+      expectation = func.expected
+      expect(expectation).to be_a Mocha::Expectation
+      expect(expectation.matches_method? :execute).to eq true
+      func.execute # satisfy the expect we just created on #execute!
+    end
+
+    it 'clears rspec puppet cache' do
+      RSpec::Puppet::Support.expects(:clear_cache).once
+      func.expected
+      func.execute # satisfy the expect we just created on #execute!
+    end
+
+    it 'works with parameter matchers' do
+      func.expected.with(regexp_matches(/thing/), anything)
+      scope.function_func ['something', 1234]
+    end
+
+    context 'when :keep_cache is set' do
+
+      it 'does not clear rspec puppet cache' do
+        RSpec::Puppet::Support.expects(:clear_cache).never
+        func.expected(:keep_cache)
+        func.execute # satisfy the expect we just created on #execute!
+      end
+
+    end
+
   end
 
   describe '#stub' do
