@@ -28,7 +28,7 @@ describe 'foo::bar' do
     }
   }
 
-  it 'should do something with add_stuff' do
+  it 'does something with add_stuff' do
     # Specific stub for this test
     add_stuff.stubbed.with(2, 3).returns(5)
     ...
@@ -96,7 +96,7 @@ describe 'my_template' do
     scope.stubs(:function_hiera).with('hiera-key').returns('hiera-value')
   end
   
-  it 'should render template' do
+  it 'renders template' do
     harness = TemplateHarness.new('spec/.../.../my_template.erb', scope)
     harness.set('@class_var', 'classy')
     result = harness.run
@@ -124,14 +124,14 @@ describe 'YAML hieradata' do
   # Use load_data without args to catch empty files
 
   # Check types
-  it 'should use arrays for api host lists' do
+  it 'uses arrays for api host lists' do
     validator.validate('my-api-hosts') { |v|
       expect(v).to be_an Array
     }
   end
 
   # Use regex to match keys
-  it 'ports should only contain digits' do
+  it 'only uses digits for port numbers' do
     validator.validate(/-port$/) { |v|
       expect(v).to match /^[0-9]+$/
     }
@@ -140,7 +140,7 @@ describe 'YAML hieradata' do
   # Supply a list of files that the key must be in
   # (all matches in all other files are still validated)
   # :live and :qa correspond to live.yaml and qa.yaml
-  it 'should override password in live and qa' do
+  it 'overrides password in live and qa' do
     validator.validate('password', [:live, :qa]) { |v|
       expect ...
     }
