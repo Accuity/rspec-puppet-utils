@@ -1,6 +1,6 @@
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 
-RSpec::Core::RakeTask.new(:rspec)
+RSpec::Core::RakeTask.new(:spec)
 
-task :build => :rspec
+task :build => :spec
