@@ -65,6 +65,64 @@ Clearing the cache ensures tests aren't coupled and order dependent. The downsid
 - You always stub the `execute` method as that gets called internally
 - The `execute` method takes a set of arguments instead of an array of arguments
 
+### MockResource (experimental feature)
+
+I've created a rough version for now just to help myself out, if people find it useful or find bugs, let me know
+
+#####Usage:
+
+To stop your tests dissapearing down a rabbit hole, you can use the rspec-puppet `let(:pre_condition) { ... }` feature to create mock versions of resources that your puppet class depends on. For example:
+
+```puppet
+class my_module::my_class {
+
+  include foo::bar
+  
+  $useful_var = $foo::bar::baz
+  
+  external_module::complex_type { 'complex thing':
+    param_one      => 'one',
+    param_two      => 'two',
+    required_param => 'important value',
+  }
+  
+  <actual stuff you want to test>
+}
+```
+
+In the tests for `my_class`, you don't want to use the actual `foo::bar` and `external_module::complex_type` resources because it could be a lot of complex setup code, it can be difficult to test multiple scenarios, and you are by extension testing these other classes (which should have tests of their own)
+
+You can therefore mock these resources by creating fakes that have the same "interface", but empty bodies:
+```ruby
+let(:pre_condition) { [
+    "class foo::bar { $baz = 'a value' }",
+    "define external_module::complex_type ( $param_one = 'default', $param_two = undef, $required_param ) {}",
+] }
+```
+
+This can get quite complex if there are multiple parameters and/or internal variables. `MockResource` is designed to make it easier to mock out these dependencies
+```ruby
+mock_bar = MockResource.new 'foo::bar', {
+    :vars => { :baz => some_var_you_want_to_use_later }
+}
+
+mock_complex_type = MockResource.new 'external_module::complex_type', {
+    :type => :define,
+    :params => {
+        :param_one      => 'default',
+        :param_two      => :undef,
+        :required_param => nil,
+    }
+}
+
+let(:pre_condition) { [
+    mock_bar.render,
+    mock_complex_thing.render,
+] }
+```
+
+Hopefully you spend less time debugging syntax errors in your test strings, and more time writing useful code
+
 ### TemplateHarness
 
 If your templates have some logic in them that you want to test, you'd ideally like to get hold of the generated template so you can inspect it programmatically rather than just using a regex. In this case use `TemplateHarness`
