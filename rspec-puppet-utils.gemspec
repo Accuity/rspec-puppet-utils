@@ -11,4 +11,11 @@ Gem::Specification.new do |gem|
   gem.files         = `git ls-files`.split($/)
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
+
+  gem.add_runtime_dependency 'mocha'
+  gem.add_runtime_dependency 'puppet', '~> 3'
+  gem.add_runtime_dependency 'puppetlabs_spec_helper'
+  gem.add_runtime_dependency 'rspec', '3.1.0'
+  gem.add_runtime_dependency 'rspec-puppet'
+  gem.add_runtime_dependency 'thor'
 end
