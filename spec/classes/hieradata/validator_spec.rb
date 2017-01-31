@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'lib/hieradata/validator'
+require 'lib/rspec_puppet_utils/hieradata/validator'
 
 include RSpecPuppetUtils
 

@@ -1,4 +1,4 @@
-require 'hieradata/validator'
+require 'rspec_puppet_utils/hieradata/validator'
 require 'yaml'
 
 module RSpecPuppetUtils

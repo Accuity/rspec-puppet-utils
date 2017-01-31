@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'lib/mock_function'
+require 'lib/rspec_puppet_utils/mock_function'
 
 include RSpecPuppetUtils
 

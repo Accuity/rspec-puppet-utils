@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'lib/mock_resource'
+require 'lib/rspec_puppet_utils/mock_resource'
 
 include RSpecPuppetUtils
 
