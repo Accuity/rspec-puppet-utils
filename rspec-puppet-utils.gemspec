@@ -5,7 +5,7 @@ Gem::Specification.new do |gem|
   gem.description   = 'Helper classes for mock/stub functions, templates and hierdata'
   gem.summary       = ''
   gem.author        = 'Tom Poulton'
-  #gem.license       = ''
+  gem.license       = 'MIT'
 
   gem.homepage      = 'https://github.com/Accuity/rspec-puppet-utils'
   gem.files         = `git ls-files`.split($/)
