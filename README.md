@@ -8,7 +8,9 @@ See [release notes](../../wiki/Release-Notes) about latest version
 
 #### v3.0.0
 
+The project is now developed against ruby 2.1.0 and so it may not be backwards compatible when running on ruby 1.8.7.
 
+The internal file structure has also changed, which shouldn't affect usage, but it might :) 
 
 #### v2.1.0
 
@@ -229,7 +231,7 @@ For more about usage see the [wiki page](../../wiki/Hiera-Data-Validator)
 - Add `rspec-puppet-utils` to your Gemfile (or use `gem install rspec-puppet-utils`)
 - Add `require 'rspec-puppet-utils'` to the top of your `spec_helper`
 
-## Rake Tasks
+## Rake Tasks (experimental feature)
 
 `rspec-puppet-utils` also provides helper classes to add common rake tasks to a Puppet project or module.
 
@@ -285,7 +287,7 @@ It also guarantees that the binary at the end of a build was just built, and was
 
 ##### ToDo:
 
-Currently the `rspec` task runs all the `rspec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal! (Change the rspec tasks to be a filter that picks up all *_spec.rb tasks instead of running existing modules?)
+Currently the `rspec` task runs all the `rspec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
 
 The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
 
