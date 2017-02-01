@@ -9,23 +9,27 @@ describe Rake::Puppet do
 
   let(:puppet) { Rake::Puppet.new }
 
-  describe 'load_rspec_tasks' do
+  describe 'load_spec_tasks' do
+
+    before(:each) do
+      puppet.stubs(:testable_modules).returns(testable_modules) # not exactly best practice, but hey
+    end
 
     it 'includes namespace and task methods from Rake::DSL' do
       # It would throw error on load if task or namespace methods are missing
-      expect { puppet.load_rspec_tasks }.to_not raise_error
+      expect { puppet.load_spec_tasks }.to_not raise_error
     end
 
     it 'creates a task for each module' do
-      puppet.stubs(:testable_modules).returns(testable_modules) # not exactly best practice, but hey
-      puppet.load_rspec_tasks
+      puppet.load_spec_tasks
       testable_modules.each { |mod|
-        expect(Rake::Task.task_defined?("rspec:#{mod}")).to eq true
+        expect(Rake::Task.task_defined?("spec:#{mod}")).to eq true
       }
     end
 
-    it 'loads the main rspec task' do
-      expect(Rake::Task.task_defined?(:rspec)).to eq true
+    it 'loads the main spec task' do
+      puppet.load_spec_tasks
+      expect(Rake::Task.task_defined?(:spec)).to eq true
     end
 
   end

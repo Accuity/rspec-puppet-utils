@@ -6,12 +6,12 @@ This is to explain our design thoughts for anyone that's interested, although it
 
 ### Project Tasks
 
-The rspec rake tasks are structured on the basis that each module in a project (ignoring external modules for now) has its own set of rspec tests.
+The spec rake tasks are structured on the basis that each module in a project (ignoring external modules for now) has its own set of rspec tests.
 
-We could fix the issues with the main `rspec` task by changing it to scan all modules' spec directories for spec files and run them:
+We could fix the issues with the main `spec` task by changing it to scan all modules' spec directories for spec files and run them:
 
 ```ruby
-RSpec::Core::RakeTask.new :rspec do |t|
+RSpec::Core::RakeTask.new :spec do |t|
     t.pattern = "#{module_path}/**/#{RSpec::Core::RakeTask::DEFAULT_PATTERN}"
 end
 ```

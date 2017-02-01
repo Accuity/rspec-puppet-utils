@@ -252,19 +252,19 @@ puppet.package_version = '1.0.0'
 puppet.load_tasks
 ```
 
-Running `rake -T` afterwords should show a list of rspec and build tasks:
+Running `rake -T` afterwords should show a list of spec and build tasks:
 
 ```bash
 $ rake -T
-rake build             # Build puppet.zip v1.0.0
-rake quick_build       # Build puppet.zip v1.0.0 without tests
-rake rspec             # Run rspec tests in all modules
-rake rspec:<mod a>     # Run <mod a> module rspec tests
-rake rspec:<mod b>     # Run <mod b> module rspec tests
+rake build            # Build puppet.zip v1.0.0
+rake quick_build      # Build puppet.zip v1.0.0 without tests
+rake spec             # Run specs in all modules
+rake spec:<mod a>     # Run <mod a> module specs
+rake spec:<mod b>     # Run <mod b> module specs
 ...
 ```
 
-There is an rspec task for each module, as well as a main `rspec` task that will run all specs in a project.
+There is an spec task for each module, as well as a main `spec` task that will run all specs in a project.
 
 The `build` task will bundle all Puppet code (modules, hiera data file, environment.conf files, etc) into a .zip file which can then be deployed. 
 
@@ -287,7 +287,7 @@ It also guarantees that the binary at the end of a build was just built, and was
 
 ##### ToDo:
 
-Currently the `rspec` task runs all the `rspec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
+Currently the `spec` task runs all the `spec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
 
 The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
 

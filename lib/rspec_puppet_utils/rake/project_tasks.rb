@@ -33,7 +33,7 @@ module Rake
     end
 
     def load_tasks
-      load_rspec_tasks
+      load_spec_tasks
       load_build_tasks
     end
 
@@ -44,17 +44,17 @@ module Rake
       module_dirs
     end
 
-    def load_rspec_tasks
+    def load_spec_tasks
 
       modules      = testable_modules
-      module_tasks = modules.collect { |m| "#{:rspec}:#{m}" }
+      module_tasks = modules.collect { |m| "#{:spec}:#{m}" }
 
-      namespace :rspec do
+      namespace :spec do
         modules.each { |puppet_module|
           module_root = "#{@module_path}/#{puppet_module}"
           opts_path   = "#{module_root}/spec/spec.opts"
 
-          desc "Run #{puppet_module} module rspec tests"
+          desc "Run #{puppet_module} module specs"
           RSpec::Core::RakeTask.new puppet_module do |t|
             t.ruby_opts  = "-C#{module_root}"
             t.rspec_opts = File.exists?(opts_path) ? File.read(opts_path).chomp : ''
@@ -62,9 +62,9 @@ module Rake
         }
       end
 
-      desc 'Run rspec tests in all modules'
-      task :rspec   => module_tasks
-      task :default => :rspec
+      desc 'Run specs in all modules'
+      task :spec    => module_tasks
+      task :default => :spec
     end
 
     def load_build_tasks
@@ -110,7 +110,7 @@ module Rake
       end
 
       desc "Build #{@package_name}.zip v#{@package_version}"
-      task :build => [:rspec, :quick_build]
+      task :build => [:spec, :quick_build]
     end
 
   end
