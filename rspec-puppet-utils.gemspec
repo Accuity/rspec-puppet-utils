@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_dependency('puppet', '>= 3')
-  gem.add_dependency('rspec', '3.1.0')
+  gem.add_dependency('rspec')
   gem.add_dependency('rspec-puppet')
   gem.add_dependency('puppetlabs_spec_helper')
   gem.add_dependency('mocha')

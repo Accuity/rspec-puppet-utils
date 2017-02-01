@@ -1,5 +1,5 @@
 require 'puppet'
-require 'mocha'
+require 'mocha/api'
 
 module RSpec::Puppet
   module Support
