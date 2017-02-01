@@ -4,17 +4,23 @@ This is a more refined version of a previous project about [rspec-puppet unit te
 
 See [release notes](../../wiki/Release-Notes) about latest version
 
-## Usage
+## Updates:
 
-### MockFunction
+#### v3.0.0
 
-#####Update:
+The project is now developed against ruby 2.1.0 and so it may not be backwards compatible when running on ruby 1.8.7.
 
-As of version 2.1.0 the `#stub` and `#expect` methods have been superseded by `#stubbed` and `#expected` so that you can use parameter matchers. The only difference in usage from previous versions is that the methods take a set of parameters rather than a single array (e.g. `f.expected.with(1, 2, 3)` instead of `f.expect.with([1, 2, 3])`)
+The internal file structure has also changed, which shouldn't affect usage, but it might :) 
+
+#### v2.1.0
+
+The `MockFunction` `#stub` and `#expect` methods have been superseded by `#stubbed` and `#expected` so that you can use parameter matchers. The only difference in usage from previous versions is that the methods take a set of parameters rather than a single array (e.g. `f.expected.with(1, 2, 3)` instead of `f.expect.with([1, 2, 3])`)
 
 The change is backwards compatible so `#stub` and `#expect` are still available and function as before
 
-#####Usage:
+## Usage
+
+### MockFunction
 
 The basic usage is to create your mock function with `MockFunction.new` and then use `mocha` to stub any particular calls that you need
 
@@ -54,14 +60,14 @@ If you use let, **use `let!()` and not `let()`**, this is because lets are lazy-
 
 Also if you use `let` when mocking hiera, **you can't use `:hiera` as the name due to conflicts** so you have to do something like `let!(:mock_hiera) { MockFunction.new('hiera') }`
 
-#####Mocha stubs and expects:
+##### Mocha stubs and expects:
 `f.stubbed` and `f.expected` are helper methods for `f.stubs(:execute)` and `f.expects(:execute)`
 
 Internally `#expected` will clear the rspec-puppet catalog cache. This is because rspec-puppet will only re-compile the catalog for a test if `:title`, `:params`, or `:facts` are changed. This means that if you setup an expectaion in a test, it might not be satisfied because the catalog was already compiled for a previous test, and so the functions weren't called!
 
 Clearing the cache ensures tests aren't coupled and order dependent. The downside is that the catalog isn't cached and has to be re-compiled which slows down your tests. If you're concerned about performance and you are explicitly changing `:title`, `:params`, or `:facts` for a test, you can keep the cache intact with `f.expected(:keep_cache)`
 
-#####Notes:
+##### Notes:
 - You always stub the `execute` method as that gets called internally
 - The `execute` method takes a set of arguments instead of an array of arguments
 
@@ -69,7 +75,7 @@ Clearing the cache ensures tests aren't coupled and order dependent. The downsid
 
 I've created a rough version for now just to help myself out, if people find it useful or find bugs, let me know
 
-#####Usage:
+##### Usage:
 
 To stop your tests dissapearing down a rabbit hole, you can use the rspec-puppet `let(:pre_condition) { ... }` feature to create mock versions of resources that your puppet class depends on. For example:
 
@@ -221,6 +227,70 @@ Diff:
 
 For more about usage see the [wiki page](../../wiki/Hiera-Data-Validator)
 
-## Setup
+### Setup
 - Add `rspec-puppet-utils` to your Gemfile (or use `gem install rspec-puppet-utils`)
 - Add `require 'rspec-puppet-utils'` to the top of your `spec_helper`
+
+## Rake Tasks (experimental feature)
+
+`rspec-puppet-utils` also provides helper classes to add common rake tasks to a Puppet project or module.
+
+### Project Tasks
+
+The `Rake::Puppet` class provides tasks that handle testing and building a Puppet project.
+
+##### Usage:
+
+An example `Rakefile` might look like this:
+
+```ruby
+require 'rake'
+require 'rspec_puppet_utils/rake/project_tasks'
+
+puppet = Rake::Puppet.new
+puppet.package_version = '1.0.0'
+puppet.load_tasks
+```
+
+Running `rake -T` afterwords should show a list of spec and build tasks:
+
+```bash
+$ rake -T
+rake build            # Build puppet.zip v1.0.0
+rake quick_build      # Build puppet.zip v1.0.0 without tests
+rake spec             # Run specs in all modules
+rake spec:<mod a>     # Run <mod a> module specs
+rake spec:<mod b>     # Run <mod b> module specs
+...
+```
+
+There is an spec task for each module, as well as a main `spec` task that will run all specs in a project.
+
+The `build` task will bundle all Puppet code (modules, hiera data file, environment.conf files, etc) into a .zip file which can then be deployed. 
+
+In the example above `package_version` is set as it's a required field. The other accessible properties are:
+
+- module_path      - The directory containing all the modules to test (default: 'modules')
+- excluded_modules - Modules to exclude from rspec testing (default: [])
+- package_dir      - Where the puppet zip package will be created (default: 'pkg')
+- package_files    - Files and directories to include in the package (default: ['modules', 'modules-lib', 'config/environment.conf'])
+- package_version  - The version of the package (e.g. 2.1.0)
+
+##### NB:
+
+The `package_files` list is setup for the modules-lib pattern by default. In this pattern external (e.g. Puppet Forge) modules are installed in a separate 'modules-lib', leaving the 'modules' dir for project modules such as 'components', 'profiles', 'role', etc. 
+If you're not using this pattern then just provide a new array for `package_files`.
+
+Running the `build` or `quick_build` tasks will delete any existing builds in the `pkg` directory.
+This is so the same build task can be run over and over on a build server (e.g. Jenkins) without filling up the disk.
+It also guarantees that the binary at the end of a build was just built, and wasn't left over from a previous build.
+
+##### ToDo:
+
+Currently the `spec` task runs all the `spec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
+
+The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
+
+### Module Tasks
+
+WIP
