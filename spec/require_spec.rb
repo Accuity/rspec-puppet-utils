@@ -1,4 +1,4 @@
-require 'mock_function'
+require 'lib/rspec_puppet_utils/mock_function'
 
 describe 'requires' do
   it 'requires mocha properly without the spec_helper' do
