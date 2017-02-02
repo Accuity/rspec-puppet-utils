@@ -2,7 +2,6 @@ require 'rake'
 require 'rspec/core/rake_task'
 require 'fileutils'
 
-# ToDo: Add flag to include version in package file name or not e.g. puppet-1.2.3.zip
 # ToDo: replace zip cmds with ruby zip lib to avoid shelling out
 
 module Rake
@@ -10,26 +9,28 @@ module Rake
   class Puppet
 
     attr_accessor :module_path, :excluded_modules
-    attr_accessor :package_dir, :package_files, :package_version
+    attr_accessor :package_dir, :package_files, :package_version, :package_versioning
 
-    @module_path      # The directory containing all the modules to test
-    @excluded_dirs    # Directories excluded from rspec search
-    @excluded_modules # Modules to exclude from rspec testing
-    @package_dir      # Where the puppet zip package will be created
-    @package_files    # Files and directories to include in the package
-    @package_name     # Name of the package
-    @package_version  # The version of the package (e.g. 2.1.0)
+    @module_path        # (string)   The directory containing all the modules to test
+    @excluded_dirs      # (string[]) Directories excluded from rspec search
+    @excluded_modules   # (string[]) Modules excluded from rspec testing
+    @package_dir        # (string)   Where the puppet zip package will be created
+    @package_files      # (string[]) Files and directories to include in the package
+    @package_name       # (string)   Name of the package
+    @package_version    # (string)   The version of the package (e.g. 2.1.0)
+    @package_versioning # (boolean)  Is the version included in the package name?
 
     def initialize
       extend Rake::DSL  # makes 'namespace' and 'task' methods available to instance
 
-      @module_path      = 'modules' # Deliberately excludes modules-lib dir
-      @excluded_dirs    = ['.', '..']
-      @excluded_modules = []
-      @package_dir      = 'pkg'
-      @package_files    = ['modules', 'modules-lib', 'config/environment.conf']
-      @package_name     = 'puppet'
-      @package_version  = nil
+      @module_path        = 'modules' # Deliberately excludes modules-lib dir
+      @excluded_dirs      = ['.', '..']
+      @excluded_modules   = []
+      @package_dir        = 'pkg'
+      @package_files      = ['modules', 'modules-lib', 'config/environment.conf']
+      @package_name       = 'puppet'
+      @package_version    = nil
+      @package_versioning = true
     end
 
     def load_tasks
@@ -71,10 +72,12 @@ module Rake
 
       raise(ArgumentError, 'Please provide a package_version (e.g. "1.0.0")') if @package_version.nil?
 
-      namespace :build do
+      # The build_dir (i.e. 'puppet') is the root dir of the files when the zip is extracted
+      build_dir         = "#{@package_dir}/puppet"
+      full_package_name = @package_versioning ? "puppet-#{@package_version}.zip" : 'puppet.zip'
+      package_desc      = @package_versioning ? full_package_name : "#{full_package_name} v#{@package_version}"
 
-        # The build_dir (i.e. 'puppet') is the root dir of the files when the zip is extracted
-        build_dir = "#{@package_dir}/puppet"
+      namespace :build do
 
         # Preps build directory
         task :prep do
@@ -94,7 +97,7 @@ module Rake
         task :package => [:prep] do
           # Exclude modules' spec directories as they're not needed once deployed
           exclude_patterns = '-x puppet/modules/\*/spec/\* puppet/modules-lib/\*/spec/\*'
-          cmds = ["cd #{@package_dir}", '&&', "zip -qr #{@package_name}.zip . #{exclude_patterns}", '&&', 'cd -']
+          cmds = ["cd #{@package_dir}", '&&', "zip -qr #{full_package_name} . #{exclude_patterns}", '&&', 'cd -']
           puts `#{cmds.join(' ')}`
         end
 
@@ -104,12 +107,12 @@ module Rake
         end
       end
 
-      desc "Build #{@package_name}.zip v#{@package_version} without tests"
+      desc "Build #{package_desc} without tests"
       task :quick_build => ['build:package', 'build:cleanup'] do
-        puts "Built #{@package_name}.zip version #{@package_version}"
+        puts "Built #{package_desc}"
       end
 
-      desc "Build #{@package_name}.zip v#{@package_version}"
+      desc "Build #{package_desc}"
       task :build => [:spec, :quick_build]
     end
 

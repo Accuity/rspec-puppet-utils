@@ -9,6 +9,13 @@ describe Rake::Puppet do
 
   let(:puppet) { Rake::Puppet.new }
 
+  it 'allows adding to package_files list' do
+    initial_count = puppet.package_files.count
+    puppet.package_files << 'extra_file'
+    expect(puppet.package_files).to include 'extra_file'
+    expect(puppet.package_files.count).to eq initial_count + 1
+  end
+
   describe 'load_spec_tasks' do
 
     before(:each) do
@@ -45,20 +52,42 @@ describe Rake::Puppet do
       let(:package_version) { '1.2.3' }
       before(:each) {
         puppet.package_version = package_version
-        puppet.load_build_tasks
       }
 
       it 'loads the "build" task' do
+        puppet.load_build_tasks
         expect(Rake::Task.task_defined?(:build)).to eq true
       end
 
       it 'loads the "quick_build" task' do
+        puppet.load_build_tasks
         expect(Rake::Task.task_defined?(:quick_build)).to eq true
       end
 
-      it 'includes package_version in task description' do
+      it 'includes package_version in package name' do
+        puppet.load_build_tasks
         build_task = Rake::Task[:build]
-        expect(build_task.application.last_description).to match /v#{package_version}/
+        expect(build_task.application.last_description).to match /puppet-#{package_version}.zip/
+      end
+
+      context 'when package_versioning is turned off' do
+
+        before(:each) do
+          puppet.package_versioning = false
+        end
+
+        it 'omits the version from the package name' do
+          puppet.load_build_tasks
+          build_task = Rake::Task[:build]
+          expect(build_task.application.last_description).to match /puppet.zip/
+        end
+
+        it 'includes the version in the task description' do
+          puppet.load_build_tasks
+          build_task = Rake::Task[:build]
+          expect(build_task.application.last_description).to match /v#{package_version}/
+        end
+
       end
 
     end

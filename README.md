@@ -6,6 +6,14 @@ See [release notes](../../wiki/Release-Notes) about latest version
 
 ## Updates:
 
+#### v3.1.0
+
+By default the zip file now includes the version (e.g. `puppet-1.2.0.zip`). In v3.0.0 the file was just called `puppet.zip`
+
+You can omit the version from the zip name like so: `puppet.package_versioning = false`
+
+Given that v3.0.0 was only released the day before, I'll keep it as a minor version update
+
 #### v3.0.0
 
 The project is now developed against ruby 2.1.0 and so it may not be backwards compatible when running on ruby 1.8.7.
@@ -270,11 +278,11 @@ The `build` task will bundle all Puppet code (modules, hiera data file, environm
 
 In the example above `package_version` is set as it's a required field. The other accessible properties are:
 
-- module_path      - The directory containing all the modules to test (default: 'modules')
-- excluded_modules - Modules to exclude from rspec testing (default: [])
-- package_dir      - Where the puppet zip package will be created (default: 'pkg')
-- package_files    - Files and directories to include in the package (default: ['modules', 'modules-lib', 'config/environment.conf'])
-- package_version  - The version of the package (e.g. 2.1.0)
+- module_path        - The directory containing all the modules to test (default: 'modules')
+- excluded_modules   - Modules to exclude from rspec testing (default: [])
+- package_dir        - Where the puppet zip package will be created (default: 'pkg')
+- package_files      - Files and directories to include in the package (default: ['modules', 'modules-lib', 'config/environment.conf'])
+- package_versioning - Is the version included in the package name? (default: true)
 
 ##### NB:
 
@@ -287,7 +295,7 @@ It also guarantees that the binary at the end of a build was just built, and was
 
 ##### ToDo:
 
-Currently the `spec` task runs all the `spec::<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
+Currently the `spec` task runs all the `spec:<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
 
 The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
 
