@@ -6,6 +6,7 @@ describe Rake::Puppet do
   module_path      = 'modules'
   testable_modules = [ 'core', 'base' ]
   modules_dir_list = [ 'core', 'base', 'role', 'profiles' ]
+  rakefile_names   = ['Rakefile', 'rakefile', 'Rakefile.rb', 'rakefile.rb']
 
   let(:puppet) { Rake::Puppet.new }
 
@@ -94,37 +95,57 @@ describe Rake::Puppet do
 
   end
 
+  describe 'filter_modules' do
+
+    before(:each) do
+      Dir.stubs(:entries).returns []
+    end
+
+    it 'filters modules with a spec directory' do
+      Dir.stubs(:entries).returns rakefile_names # bypass Rakefile filter
+
+      File.stubs(:directory?).returns false
+      File.stubs(:directory?).with(regexp_matches( /(#{testable_modules.join '|'})\/spec$/ )).returns(true)
+
+      result = puppet.filter_modules modules_dir_list
+      expect(result).to match_array testable_modules
+    end
+
+    rakefile_names.each { |filename|
+      it 'filters modules with a Rakefile' do
+        File.stubs(:directory?).returns true # bypass spec dir filter
+
+        Dir.stubs(:entries).with(regexp_matches( /#{testable_modules.join '|'}/ )).returns([filename])
+
+        result = puppet.filter_modules modules_dir_list
+        expect(result).to match_array testable_modules
+      end
+    }
+
+  end
+
   describe 'testable_modules' do
 
-    it 'finds modules with a spec directory' do
-      Dir.stubs(:entries).with(module_path).returns modules_dir_list.clone
+    before(:each) do
+      # Bypass the filter logic. Again, not exactly best practice, but hey
+      def puppet.filter_modules(_modules)
+        _modules
+      end
+    end
 
-      File.stubs(:directory?).returns(false)
-      File.stubs(:directory?).with(regexp_matches( /(#{testable_modules.join '|'})\/spec$/ )).returns(true)
+    it 'ignores excluded directories' do
+      Dir.stubs(:entries).with(module_path).returns testable_modules + ['.', '..']
 
       result = puppet.testable_modules
       expect(result).to match_array testable_modules
     end
 
-    it 'finds modules within module_path' do
-      alt_module_path = 'modules-alt'
-
-      Dir.expects(:entries).with(alt_module_path).returns testable_modules
-      testable_modules.each { |m|
-        File.expects(:directory?).with(regexp_matches( /#{alt_module_path}\/#{m}/ )).returns(true)
-      }
-
-      puppet.module_path = alt_module_path
-      puppet.testable_modules
-    end
-
     it 'ignores excluded modules' do
-      Dir.stubs(:entries).with(module_path).returns testable_modules.clone
-      File.stubs(:directory?).returns(true)
+      Dir.stubs(:entries).with(module_path).returns testable_modules + ['exclude_me']
 
-      puppet.excluded_modules = ['core']
+      puppet.excluded_modules = ['exclude_me']
       result = puppet.testable_modules
-      expect(result).to match_array ['base']
+      expect(result).to match_array testable_modules
     end
 
     it 'throws error if excluded modules is not an array' do
@@ -132,12 +153,13 @@ describe Rake::Puppet do
       expect { puppet.testable_modules }.to raise_error(ArgumentError, /must be an array/)
     end
 
-    it 'ignores excluded directories' do
-      Dir.stubs(:entries).with(module_path).returns testable_modules + ['.', '..']
-      File.stubs(:directory?).returns(true)
+    it 'finds modules within module_path' do
+      alt_module_path = 'modules-alt'
 
-      result = puppet.testable_modules
-      expect(result).to match_array testable_modules
+      Dir.expects(:entries).with(alt_module_path).returns modules_dir_list
+
+      puppet.module_path = alt_module_path
+      puppet.testable_modules
     end
 
   end

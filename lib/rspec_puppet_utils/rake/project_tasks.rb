@@ -41,8 +41,24 @@ module Rake
     def testable_modules
       raise ArgumentError, 'Excluded modules must be an array' unless @excluded_modules.is_a? Array
       module_dirs = Dir.entries(@module_path) - @excluded_dirs - @excluded_modules
-      module_dirs.select! {|e| File.directory?("#{@module_path}/#{e}/spec") }
+      filter_modules module_dirs
+    end
+
+    def filter_modules(module_dirs)
+      module_dirs.select! { |m| module_has_specs?(m) and module_has_rakefile?(m) }
       module_dirs
+    end
+
+    def module_has_specs?(module_dir)
+      File.directory?("#{@module_path}/#{module_dir}/spec")
+    end
+
+    def module_has_rakefile?(module_dir)
+      rakefiles = ['rakefile', 'rakefile.rb']
+      entries   = Dir.entries("#{@module_path}/#{module_dir}")
+      entries.collect! { |f| f.downcase }
+      rakefiles.each { |rf| return true if entries.include? rf }
+      false
     end
 
     def load_spec_tasks
