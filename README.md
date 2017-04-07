@@ -247,12 +247,11 @@ For more about usage see the [wiki page](../../wiki/Hiera-Data-Validator)
 
 The `Rake::Puppet` class provides tasks that handle testing and building a Puppet project.
 
-##### Usage:
+##### Usage
 
 An example `Rakefile` might look like this:
 
 ```ruby
-require 'rake'
 require 'rspec_puppet_utils/rake/project_tasks'
 
 puppet = Rake::Puppet.new
@@ -260,15 +259,15 @@ puppet.package_version = '1.0.0'
 puppet.load_tasks
 ```
 
-Running `rake -T` afterwords should show a list of spec and build tasks:
+Running `rake -T` should now show a list of spec and build tasks:
 
 ```bash
 $ rake -T
 rake build            # Build puppet.zip v1.0.0
 rake quick_build      # Build puppet.zip v1.0.0 without tests
 rake spec             # Run specs in all modules
-rake spec:<mod a>     # Run <mod a> module specs
-rake spec:<mod b>     # Run <mod b> module specs
+rake <mod a>:spec     # Run <mod a> module specs
+rake <mod b>:spec     # Run <mod b> module specs
 ...
 ```
 
@@ -284,7 +283,27 @@ In the example above `package_version` is set as it's a required field. The othe
 - package_files      - Files and directories to include in the package (default: ['modules', 'modules-lib', 'config/environment.conf'])
 - package_versioning - Is the version included in the package name? (default: true)
 
-##### NB:
+##### Setup
+
+The `spec` task for each module actually just executes the `spec` task defined in the module's Rakefile, 
+and the `Rake::Puppet` class will filter out modules that dont have a Rakefile, 
+
+Therefore each module needs the following two files:
+
+```ruby
+# <mod>/Rakefile
+require 'puppetlabs_spec_helper/rake_tasks'
+```
+
+```ruby
+# <mod>/spec/spec_helper.rb
+require 'rspec-puppet-utils'
+require 'puppetlabs_spec_helper/module_spec_helper'
+```
+
+Extra content/tasks/options/etc can be added to these files, but this is the suggested minimum
+
+##### NB
 
 The `package_files` list is setup for the modules-lib pattern by default. In this pattern external (e.g. Puppet Forge) modules are installed in a separate 'modules-lib', leaving the 'modules' dir for project modules such as 'components', 'profiles', 'role', etc. 
 If you're not using this pattern then just provide a new array for `package_files`.
@@ -293,9 +312,9 @@ Running the `build` or `quick_build` tasks will delete any existing builds in th
 This is so the same build task can be run over and over on a build server (e.g. Jenkins) without filling up the disk.
 It also guarantees that the binary at the end of a build was just built, and wasn't left over from a previous build.
 
-##### ToDo:
+##### ToDo
 
-Currently the `spec` task runs all the `spec:<module>` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
+Currently the `spec` task runs all the `<module>:spec` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
 
 The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
 

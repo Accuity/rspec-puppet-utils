@@ -34,7 +34,7 @@ module Rake
     end
 
     def load_tasks
-      load_spec_tasks
+      load_module_tasks
       load_build_tasks
     end
 
@@ -61,27 +61,33 @@ module Rake
       false
     end
 
-    def load_spec_tasks
+    def load_module_tasks
 
-      modules      = testable_modules
-      module_tasks = modules.collect { |m| "#{:spec}:#{m}" }
+      modules    = testable_modules
+      spec_tasks = modules.collect { |m| "#{m}:#{:spec}" }
+      # lint_tasks = modules.collect { |m| "#{m}:#{:lint}" }
 
-      namespace :spec do
-        modules.each { |puppet_module|
-          module_root = "#{@module_path}/#{puppet_module}"
-          opts_path   = "#{module_root}/spec/spec.opts"
+      modules.each { |puppet_module|
+        namespace puppet_module do
 
           desc "Run #{puppet_module} module specs"
-          RSpec::Core::RakeTask.new puppet_module do |t|
-            t.ruby_opts  = "-C#{module_root}"
-            t.rspec_opts = File.exists?(opts_path) ? File.read(opts_path).chomp : ''
+          task :spec do
+            Dir.chdir "#{@module_path}/#{puppet_module}" do
+              success = system('rake spec') # This isn't perfect but ...
+              exit success ? 0 : 1
+            end
           end
-        }
-      end
+
+        end
+      }
+
+      # desc 'Run lint checks for all modules'
+      # task :lint => lint_tasks
 
       desc 'Run specs in all modules'
-      task :spec    => module_tasks
+      task :spec    => spec_tasks
       task :default => :spec
+
     end
 
     def load_build_tasks
