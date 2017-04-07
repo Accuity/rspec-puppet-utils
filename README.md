@@ -280,7 +280,7 @@ In the example above `package_version` is set as it's a required field. The othe
 - module_path        - The directory containing all the modules to test (default: 'modules')
 - excluded_modules   - Modules to exclude from rspec testing (default: [])
 - package_dir        - Where the puppet zip package will be created (default: 'pkg')
-- package_files      - Files and directories to include in the package (default: ['modules', 'modules-lib', 'config/environment.conf'])
+- package_files      - Files and directories to include in the package (default: ['modules', 'modules-lib', 'environment.conf'])
 - package_versioning - Is the version included in the package name? (default: true)
 
 ##### Setup
@@ -303,6 +303,16 @@ require 'puppetlabs_spec_helper/module_spec_helper'
 
 Extra content/tasks/options/etc can be added to these files, but this is the suggested minimum
 
+In order for the `modules-lib` modules to be available to the Puppet server, each environment will need an `environment.conf` file to set the module path, 
+therefore an `environment.conf` file should be present in the project root:
+
+```
+# environment.conf
+modulepath = ./modules:./modules-lib:$basemodulepath
+```
+
+Again, other settings can be changed, this is just the minimum to get the modules-lib pattern working
+
 ##### NB
 
 The `package_files` list is setup for the modules-lib pattern by default. In this pattern external (e.g. Puppet Forge) modules are installed in a separate 'modules-lib', leaving the 'modules' dir for project modules such as 'components', 'profiles', 'role', etc. 
@@ -317,7 +327,3 @@ It also guarantees that the binary at the end of a build was just built, and was
 Currently the `spec` task runs all the `<module>:spec` tasks. If one of these fails then none of the subsequent tasks will run. This isn't ideal!
 
 The zip commands need to be replaced by ruby zip library to avoid shelling out, this helps with support for Windows environments
-
-### Module Tasks
-
-WIP
