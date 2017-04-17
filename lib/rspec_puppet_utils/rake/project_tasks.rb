@@ -74,7 +74,7 @@ module Rake
           task :spec do
             Dir.chdir "#{@module_path}/#{puppet_module}" do
               success = system('rake spec') # This isn't perfect but ...
-              exit success ? 0 : 1
+              exit 1 unless success
             end
           end
 
