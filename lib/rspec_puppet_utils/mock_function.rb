@@ -4,7 +4,13 @@ require 'mocha/api'
 module RSpec::Puppet
   module Support
     def self.clear_cache
-      @@cache = {}
+      begin
+        # Cache is a separate class since rspec-puppet 2.3.0
+        require 'rspec-puppet/cache'
+        @@cache = RSpec::Puppet::Cache.new
+      rescue Gem::LoadError
+        @@cache = {}
+      end
     end
   end
 end
