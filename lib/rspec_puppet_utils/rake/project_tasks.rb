@@ -8,12 +8,12 @@ module Rake
 
   class Puppet
 
-    attr_accessor :module_path, :excluded_modules
+    attr_accessor :module_dirs, :excluded_modules
     attr_accessor :package_dir, :package_files, :package_version, :package_versioning
 
-    @module_path        # (string)   The directory containing all the modules to test
-    @excluded_dirs      # (string[]) Directories excluded from rspec search
-    @excluded_modules   # (string[]) Modules excluded from rspec testing
+    @module_dirs        # (string[]) The directories containing modules to test
+    @excluded_dirs      # (string[]) Directories excluded from spec search
+    @excluded_modules   # (string[]) Modules excluded from spec testing
     @package_dir        # (string)   Where the puppet zip package will be created
     @package_files      # (string[]) Files and directories to include in the package
     @package_name       # (string)   Name of the package
@@ -23,11 +23,11 @@ module Rake
     def initialize
       extend Rake::DSL  # makes 'namespace' and 'task' methods available to instance
 
-      @module_path        = 'modules' # Deliberately excludes modules-lib dir
+      @module_dirs        = ['lib', 'site'] # Deliberately excludes 'modules' dir
       @excluded_dirs      = ['.', '..']
       @excluded_modules   = []
       @package_dir        = 'pkg'
-      @package_files      = ['modules', 'modules-lib', 'environment.conf']
+      @package_files      = @module_dirs + ['modules', 'hieradata', 'environment.conf']
       @package_name       = 'puppet'
       @package_version    = nil
       @package_versioning = true
@@ -39,23 +39,29 @@ module Rake
     end
 
     def testable_modules
-      raise ArgumentError, 'Excluded modules must be an array' unless @excluded_modules.is_a? Array
-      module_dirs = Dir.entries(@module_path) - @excluded_dirs - @excluded_modules
-      filter_modules module_dirs
+      raise ArgumentError, 'module_paths must be an array' unless @module_dirs.is_a? Array
+      raise ArgumentError, 'excluded_modules must be an array' unless @excluded_modules.is_a? Array
+      modules = []
+      @module_dirs.each { |module_dir|
+        raise ArgumentError, "Module path #{module_dir} could not be found" unless Dir.exist?(module_dir)
+        entries = Dir.entries(module_dir) - @excluded_dirs - @excluded_modules
+        modules.concat entries.collect { |entry| "#{module_dir}/#{entry}" }
+      }
+      filter_modules modules
     end
 
-    def filter_modules(module_dirs)
-      module_dirs.select! { |m| module_has_specs?(m) and module_has_rakefile?(m) }
-      module_dirs
+    def filter_modules(modules)
+      modules.select! { |m| module_has_specs?(m) and module_has_rakefile?(m) }
+      modules
     end
 
     def module_has_specs?(module_dir)
-      File.directory?("#{@module_path}/#{module_dir}/spec")
+      File.directory? "#{module_dir}/spec"
     end
 
     def module_has_rakefile?(module_dir)
       rakefiles = ['rakefile', 'rakefile.rb']
-      entries   = Dir.entries("#{@module_path}/#{module_dir}")
+      entries   = Dir.entries module_dir
       entries.collect! { |f| f.downcase }
       rakefiles.each { |rf| return true if entries.include? rf }
       false
@@ -63,26 +69,24 @@ module Rake
 
     def load_module_tasks
 
-      modules    = testable_modules
-      spec_tasks = modules.collect { |m| "#{m}:#{:spec}" }
-      # lint_tasks = modules.collect { |m| "#{m}:#{:lint}" }
+      modules      = testable_modules
+      module_names = testable_modules.collect { |m| m.split('/')[1] }
+      spec_tasks   = module_names.collect { |mn| "#{mn}:#{:spec}" }
 
-      modules.each { |puppet_module|
-        namespace puppet_module do
+      modules.each_with_index { |module_path, i|
 
-          desc "Run #{puppet_module} module specs"
+        module_name = module_names[i]
+
+        namespace module_name do
+          desc "Run #{module_name} module specs"
           task :spec do
-            Dir.chdir "#{@module_path}/#{puppet_module}" do
+            Dir.chdir module_path do
               success = system('rake spec') # This isn't perfect but ...
               exit 1 unless success
             end
           end
-
         end
       }
-
-      # desc 'Run lint checks for all modules'
-      # task :lint => lint_tasks
 
       desc 'Run specs in all modules'
       task :spec    => spec_tasks

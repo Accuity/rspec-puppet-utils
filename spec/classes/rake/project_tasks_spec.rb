@@ -3,10 +3,10 @@ require 'lib/rspec_puppet_utils/rake/project_tasks'
 
 describe Rake::Puppet do
 
-  module_path      = 'modules'
-  testable_modules = [ 'core', 'base' ]
-  modules_dir_list = [ 'core', 'base', 'role', 'profiles' ]
-  rakefile_names   = ['Rakefile', 'rakefile', 'Rakefile.rb', 'rakefile.rb']
+  testable_module_names = [ 'core', 'base' ]
+  testable_modules = [ 'lib/core', 'lib/base' ]
+  sample_modules   = [ 'lib/core', 'lib/base', 'site/role', 'site/profile' ]
+  rakefile_names   = [ 'Rakefile', 'rakefile', 'Rakefile.rb', 'rakefile.rb' ]
 
   let(:puppet) { Rake::Puppet.new }
 
@@ -30,7 +30,7 @@ describe Rake::Puppet do
 
     it 'creates a task for each module' do
       puppet.load_module_tasks
-      testable_modules.each { |mod|
+      testable_module_names.each { |mod|
         expect(Rake::Task.task_defined?("#{mod}:spec")).to eq true
       }
     end
@@ -38,6 +38,13 @@ describe Rake::Puppet do
     it 'loads the main spec task' do
       puppet.load_module_tasks
       expect(Rake::Task.task_defined?(:spec)).to eq true
+    end
+
+    it 'makes module spec tasks prerequisites of main spec task' do
+      puppet.load_module_tasks
+      task_names = testable_module_names.collect { |mn| "#{mn}:spec" }
+      prerequisites = Rake::Task[:spec].prerequisites
+      expect(prerequisites).to match_array task_names
     end
 
   end
@@ -105,9 +112,9 @@ describe Rake::Puppet do
       Dir.stubs(:entries).returns rakefile_names # bypass Rakefile filter
 
       File.stubs(:directory?).returns false
-      File.stubs(:directory?).with(regexp_matches( /(#{testable_modules.join '|'})\/spec$/ )).returns(true)
+      File.stubs(:directory?).with(regexp_matches( /^(#{testable_modules.join '|'})\/spec$/ )).returns(true)
 
-      result = puppet.filter_modules modules_dir_list
+      result = puppet.filter_modules sample_modules
       expect(result).to match_array testable_modules
     end
 
@@ -115,9 +122,9 @@ describe Rake::Puppet do
       it 'filters modules with a Rakefile' do
         File.stubs(:directory?).returns true # bypass spec dir filter
 
-        Dir.stubs(:entries).with(regexp_matches( /#{testable_modules.join '|'}/ )).returns([filename])
+        Dir.stubs(:entries).with(regexp_matches( /^#{testable_modules.join '|'}/ )).returns([filename])
 
-        result = puppet.filter_modules modules_dir_list
+        result = puppet.filter_modules sample_modules
         expect(result).to match_array testable_modules
       end
     }
@@ -131,35 +138,46 @@ describe Rake::Puppet do
       def puppet.filter_modules(_modules)
         _modules
       end
+
+      Dir.stubs(:exist?).returns true
+      Dir.stubs(:entries).with('lib').returns(['one', 'two'])
+      Dir.stubs(:entries).with('site').returns(['three', 'four'])
+      Dir.stubs(:entries).with('extra').returns(['five', 'six'])
+    end
+
+    it 'finds modules in all paths' do
+      puppet.module_dirs << 'extra'
+      modules = ['lib/one', 'lib/two', 'site/three', 'site/four', 'extra/five', 'extra/six']
+      expect(puppet.testable_modules).to match_array modules
     end
 
     it 'ignores excluded directories' do
-      Dir.stubs(:entries).with(module_path).returns testable_modules + ['.', '..']
-
-      result = puppet.testable_modules
-      expect(result).to match_array testable_modules
+      Dir.stubs(:entries).with('lib').returns(['.', '..', 'one', 'two'])
+      modules = ['lib/one', 'lib/two', 'site/three', 'site/four']
+      expect(puppet.testable_modules).to match_array modules
     end
 
     it 'ignores excluded modules' do
-      Dir.stubs(:entries).with(module_path).returns testable_modules + ['exclude_me']
-
-      puppet.excluded_modules = ['exclude_me']
-      result = puppet.testable_modules
-      expect(result).to match_array testable_modules
+      puppet.excluded_modules = ['two', 'four']
+      modules = ['lib/one', 'site/three']
+      expect(puppet.testable_modules).to match_array modules
     end
 
-    it 'throws error if excluded modules is not an array' do
+    it 'raises an error if module_paths is not an array' do
+      puppet.module_dirs = 'not an array'
+      expect { puppet.testable_modules }.to raise_error(ArgumentError, /must be an array/)
+    end
+
+    it 'raises an error if excluded modules is not an array' do
       puppet.excluded_modules = 'not an array'
       expect { puppet.testable_modules }.to raise_error(ArgumentError, /must be an array/)
     end
 
-    it 'finds modules within module_path' do
-      alt_module_path = 'modules-alt'
-
-      Dir.expects(:entries).with(alt_module_path).returns modules_dir_list
-
-      puppet.module_path = alt_module_path
-      puppet.testable_modules
+    it 'raises an error if a path directory does not exist' do
+      Dir.stubs(:exist?).with('lib').returns false
+      expect {
+        puppet.testable_modules
+      }.to raise_error(ArgumentError, /lib could not be found/)
     end
 
   end
