@@ -113,7 +113,7 @@ module Rake
 
         task :package => [:prep] do
           # Exclude all the spec code as it's not needed once deployed
-          exclude_patterns = ['modules/\*/spec/\*', 'modules-lib/\*/spec/\*']
+          exclude_patterns = ['\*/\*/spec/\*']
           exclude_string   = "-x #{exclude_patterns.join(' ')}"
           include_string   = @package_files.join(' ')
           cmd     = "zip -qr #{package_path} #{include_string} #{exclude_string}"
