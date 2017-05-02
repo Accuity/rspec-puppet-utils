@@ -153,7 +153,7 @@ module Rake
           exclude_patterns = ['\*/\*/spec/\*']
           exclude_string   = "-x #{exclude_patterns.join(' ')}"
           FileUtils.cd(build_dir) {
-            out = `zip -qr #{package_path} . #{exclude_string}`
+            out = `zip -qr '#{package_path}' . #{exclude_string}`
             fail("Error creating package: #{out}") unless $?.exitstatus == 0
           }
         end
