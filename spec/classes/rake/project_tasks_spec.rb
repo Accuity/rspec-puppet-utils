@@ -17,6 +17,33 @@ describe Rake::Puppet do
     expect(puppet.package_files.count).to eq initial_count + 1
   end
 
+  describe 'load_tasks' do
+
+    before(:each) do
+      puppet.stubs(:validate_unique_module_names)
+      puppet.stubs(:load_module_tasks)
+      puppet.stubs(:load_build_tasks)
+    end
+
+    it 'validates module names' do
+      puppet.expects(:validate_unique_module_names).once
+      puppet.load_tasks
+    end
+
+    it 'loads module tasks' do
+      puppet.expects(:load_module_tasks).once
+      puppet.load_tasks
+    end
+
+    it 'loads build tasks' do
+      puppet.expects(:load_build_tasks).once
+      puppet.load_tasks
+    end
+
+  end
+
+  # private
+
   describe 'load_module_tasks' do
 
     before(:each) do
@@ -142,12 +169,10 @@ describe Rake::Puppet do
       Dir.stubs(:exist?).returns true
       Dir.stubs(:entries).with('lib').returns(['one', 'two'])
       Dir.stubs(:entries).with('site').returns(['three', 'four'])
-      Dir.stubs(:entries).with('extra').returns(['five', 'six'])
     end
 
     it 'finds modules in all paths' do
-      puppet.module_dirs << 'extra'
-      modules = ['lib/one', 'lib/two', 'site/three', 'site/four', 'extra/five', 'extra/six']
+      modules = ['lib/one', 'lib/two', 'site/three', 'site/four']
       expect(puppet.testable_modules).to match_array modules
     end
 
@@ -163,11 +188,6 @@ describe Rake::Puppet do
       expect(puppet.testable_modules).to match_array modules
     end
 
-    it 'raises an error if module_paths is not an array' do
-      puppet.module_dirs = 'not an array'
-      expect { puppet.testable_modules }.to raise_error(ArgumentError, /must be an array/)
-    end
-
     it 'raises an error if excluded modules is not an array' do
       puppet.excluded_modules = 'not an array'
       expect { puppet.testable_modules }.to raise_error(ArgumentError, /must be an array/)
@@ -178,6 +198,47 @@ describe Rake::Puppet do
       expect {
         puppet.testable_modules
       }.to raise_error(ArgumentError, /lib could not be found/)
+    end
+
+  end
+
+  describe 'validate_unique_module_names' do
+
+    let(:dir_list_a) { ['.', '..', 'foo', 'bar'] }
+    let(:dir_list_b) { ['.', '..', 'baz', 'bam'] }
+    let(:dir_list_c) { ['.', '..', 'fuzzy', 'bazzy'] }
+
+    before(:each) do
+      Dir.stubs(:entries).with('site').returns dir_list_a
+      Dir.stubs(:entries).with('modules').returns dir_list_b
+      Dir.stubs(:entries).with('lib').returns dir_list_c
+    end
+
+    it 'does not fail if all module names are unique' do
+      expect {
+        puppet.validate_unique_module_names
+      }.to_not raise_error
+    end
+
+    it 'fails if site and modules dirs have conflicting module names' do
+      Dir.stubs(:entries).with('modules').returns dir_list_a
+      expect {
+        puppet.validate_unique_module_names
+      }.to raise_error /Duplicate module names/
+    end
+
+    it 'fails if modules and lib dirs have conflicting module names' do
+      Dir.stubs(:entries).with('lib').returns dir_list_b
+      expect {
+        puppet.validate_unique_module_names
+      }.to raise_error /Duplicate module names/
+    end
+
+    it 'fails if lib and site dirs have conflicting module names' do
+      Dir.stubs(:entries).with('site').returns dir_list_c
+      expect {
+        puppet.validate_unique_module_names
+      }.to raise_error /Duplicate module names/
     end
 
   end
